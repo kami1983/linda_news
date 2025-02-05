@@ -8,7 +8,7 @@ ROBOTSTXT_OBEY = True
 
 # 配置 pipeline
 ITEM_PIPELINES = {
-   'wscn_spider.pipelines.JsonWriterPipeline': 300,
+   'wscn_spider.pipelines.MySQLPipeline': 300,
 }
 
 # 设置下载延迟

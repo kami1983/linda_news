@@ -1,7 +1,7 @@
 import scrapy
 
 class NewsItem(scrapy.Item):
-    id = scrapy.Field()
+    item_id = scrapy.Field()
     title = scrapy.Field()
     content = scrapy.Field()
     author = scrapy.Field()

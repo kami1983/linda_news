@@ -21,11 +21,18 @@
 ├── .gitignore
 ├── .pre-commit-config.yaml
 
+```
+
 ## How to Run
 ```
 bash
 pip install -r requirements.txt
 python main.py
+```
+
+## Start MySQL
+```
+docker-compose up -d
 ```
 
 ## 项目功能

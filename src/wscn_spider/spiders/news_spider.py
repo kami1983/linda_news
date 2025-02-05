@@ -13,10 +13,10 @@ class NewsSpider(scrapy.Spider):
         
         for item in data['data']['items']:
             news = NewsItem()
-            news['id'] = item['id']
+            news['item_id'] = item['id']
             news['title'] = item['title']
             news['content'] = item['content_text']
-            news['author'] = item['author']['display_name']
+            news['author'] = 'WSCN'
             news['publish_time'] = datetime.fromtimestamp(item['display_time'])
             news['uri'] = item['uri']
             
