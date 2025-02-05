@@ -35,6 +35,14 @@ python main.py
 docker-compose up -d
 ```
 
+### supervisorctl
+
+```
+sudo apt update 
+sudo apt install supervisor -y
+sudo vi /etc/supervisor/conf.d/linda_trade.conf 
+```
+
 ## 项目功能
 * 抓取 https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global-channel
 * 返回的数据如下：
