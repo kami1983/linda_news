@@ -1,7 +1,7 @@
 import scrapy
 import json
 from ..items import NewsItem
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class NewsSpider(scrapy.Spider):
     name = 'wscn_news'
@@ -17,7 +17,14 @@ class NewsSpider(scrapy.Spider):
             news['title'] = item['title']
             news['content'] = item['content_text']
             news['author'] = 'WSCN'
-            news['publish_time'] = datetime.fromtimestamp(item['display_time'])
+            
+            # 创建北京时间的时区对象
+            tz_utc_8 = timezone(timedelta(hours=8))
+            
+            # 将时间戳转换为北京时间
+            published_at = datetime.fromtimestamp(item['display_time'], tz=tz_utc_8)
+            news['publish_time'] = published_at.strftime('%Y-%m-%d %H:%M:%S')
+            
             news['uri'] = item['uri']
             
             yield news 

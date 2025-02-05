@@ -42,6 +42,12 @@ sudo apt update
 sudo apt install supervisor -y
 sudo vi /etc/supervisor/conf.d/linda_trade.conf 
 ```
+* 重启服务
+```
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo systemctl restart supervisor
+```
 
 ## 项目功能
 * 抓取 https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global-channel
