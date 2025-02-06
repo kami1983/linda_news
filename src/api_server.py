@@ -8,9 +8,11 @@ from config import get_db_pool  # 假设配置在 config.py 中
 
 app = Quart(__name__)
 
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
+OPENAI_MODEL = os.getenv('OPENAI_MODEL')
 
-@app.route('/api/ai', methods=['POST'])
+@app.route('/api/ai/news', methods=['POST'])
 async def ai():
     '''
     # Please install OpenAI SDK first: `pip3 install openai`
@@ -26,17 +28,24 @@ async def ai():
     )
     print(response.choices[0].message.content)
     '''
+    print('Request ON：ai/news')
     try:
         # 获取 post 请求的 input 参数
         data = await request.json
-        print(data)
+        if data['content'] == '':
+            return jsonify({
+                'code': 400,
+                'message': 'content 不能为空'
+            }), 400
+        
+        ai_action = '分析新闻：对宏观环境的影响，对微观行业的影响，对投资者情绪对影响。投资方面：提示可能的潜在风险，提出几个头脑风暴问题，给出几个投资机会和建议'
 
-        client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
+        client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_REQUEST_URI)
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model=OPENAI_MODEL,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant"},
-                {"role": "user", "content": "Hello"},
+                {"role": "system", "content": ai_action},
+                {"role": "user", "content": data['content']},
             ],
             stream=False
         )
@@ -86,7 +95,6 @@ async def get_news():
         
         # 构建 SQL 查询
         query = f"SELECT {', '.join(valid_columns)} FROM linda_news.linda_news"
-        
  
         # 添加日期过滤条件
         if date:
@@ -97,12 +105,13 @@ async def get_news():
 
         print(query)
         
-        # 执行 SQL 查询
+        # 执行 SQL 查询，并且添加列信息
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(query)
                 result = await cur.fetchall()
 
+        
         return jsonify(result)  
     except Exception as e:
         return jsonify({
