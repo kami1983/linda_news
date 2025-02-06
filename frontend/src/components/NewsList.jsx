@@ -65,7 +65,7 @@ const NewsList = () => {
         {news.map((item, idx) => (
           <ListItem key={idx} sx={{ flexDirection: 'column', alignItems: 'flex-start', mb: 2 }}>
             <ListItemText
-              primary={new Date(item[2]).toLocaleString()}
+              primary={item[2]}
               secondary={
                 <>
                   <Typography component="span" variant="body2" color="text.primary">
