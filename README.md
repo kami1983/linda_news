@@ -60,6 +60,15 @@ ORDER BY
   publish_time DESC;
 ```
 
+### Start product frontend
+```
+cd frontend
+npm install
+npm run build
+npm run preview
+```
+
+
 ## 项目功能
 * 抓取 https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global-channel
 * 返回的数据如下：
