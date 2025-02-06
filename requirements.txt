@@ -2,27 +2,42 @@ aiofiles==24.1.0
 aiohttp==3.9.3
 aiomysql==0.2.0
 aiosignal==1.3.1
+anaconda-anon-usage @ file:///croot/anaconda-anon-usage_1732732445543/work
 annotated-types==0.7.0
+anyio==4.8.0
+archspec @ file:///croot/archspec_1709217642129/work
 async-timeout==4.0.3
 attrs==25.1.0
 Automat==24.8.1
 blinker==1.9.0
+boltons @ file:///work/perseverance-python-buildout/croot/boltons_1698851177130/work
+Brotli @ file:///croot/brotli-split_1714483155106/work
 certifi==2025.1.31
-cffi==1.17.1
+cffi @ file:///croot/cffi_1726856441404/work
 cfgv==3.4.0
 charset-normalizer==3.4.1
 click==8.1.8
+conda @ file:///croot/conda_1733841818148/work
+conda-anaconda-telemetry @ file:///croot/conda-anaconda-telemetry_1733258728466/work
+conda-content-trust @ file:///croot/conda-content-trust_1714483159009/work
+conda-libmamba-solver @ file:///croot/conda-libmamba-solver_1727775630457/work/src
+conda-package-handling @ file:///croot/conda-package-handling_1731369017509/work
+conda_package_streaming @ file:///croot/conda-package-streaming_1731366181659/work
 constantly==23.10.4
 cryptography==44.0.0
 cssselect==1.2.0
 distlib==0.3.9
+distro @ file:///croot/distro_1714488253808/work
 exceptiongroup==1.2.2
 filelock==3.16.1
 Flask==3.1.0
+frozendict @ file:///croot/frozendict_1713194832637/work
 frozenlist==1.5.0
 h11==0.14.0
 h2==4.2.0
 hpack==4.1.0
+httpcore==1.0.7
+httpx==0.28.1
 Hypercorn==0.17.3
 hyperframe==6.1.0
 hyperlink==21.0.0
@@ -35,46 +50,62 @@ itemadapter==0.9.0
 itemloaders==1.3.2
 itsdangerous==2.2.0
 Jinja2==3.1.5
+jiter==0.8.2
 jmespath==1.0.1
+jsonpatch @ file:///croot/jsonpatch_1714483231291/work
+jsonpointer==2.1
+libmambapy @ file:///croot/mamba-split_1732896306512/work/libmambapy
 lxml==5.3.0
 MarkupSafe==3.0.2
+menuinst @ file:///croot/menuinst_1731364904452/work
 multidict==6.1.0
 nodeenv==1.9.1
+openai==1.61.1
 packaging==24.2
 parsel==1.9.1
 platformdirs==4.3.6
-pluggy==1.5.0
+pluggy @ file:///croot/pluggy_1733169602837/work
 pre-commit==3.5.0
 priority==2.0.0
 propcache==0.2.0
 Protego==0.3.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
+pycosat @ file:///croot/pycosat_1714510623388/work
 pycparser==2.22
 pydantic==2.6.1
 pydantic_core==2.16.2
 PyDispatcher==2.0.7
 PyMySQL==1.1.0
 pyOpenSSL==25.0.0
+PySocks @ file:///work/perseverance-python-buildout/croot/pysocks_1698845478203/work
 pytest==8.0.0
 python-dotenv==1.0.1
 PyYAML==6.0.2
 Quart==0.20.0
 queuelib==1.7.0
-requests==2.32.3
+requests @ file:///croot/requests_1730999120400/work
 requests-file==2.1.0
+ruamel.yaml @ file:///croot/ruamel.yaml_1727980156079/work
+ruamel.yaml.clib @ file:///croot/ruamel.yaml.clib_1727769819935/work
 Scrapy==2.11.0
 service-identity==24.2.0
+setuptools==75.1.0
+sniffio==1.3.1
 taskgroup==0.2.2
 tldextract==5.1.2
 tomli==2.2.1
+tqdm @ file:///croot/tqdm_1724853939799/work
+truststore @ file:///work/perseverance-python-buildout/croot/truststore_1701735771625/work
 Twisted==22.10.0
 typing_extensions==4.12.2
-urllib3==2.2.3
+urllib3 @ file:///croot/urllib3_1727769808118/work
 virtualenv==20.29.1
 w3lib==2.2.1
 Werkzeug==3.1.3
+wheel==0.44.0
 wsproto==1.2.0
 yarl==1.15.2
 zipp==3.21.0
 zope.interface==7.2
+zstandard @ file:///croot/zstandard_1731356346222/work
