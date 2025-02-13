@@ -16,7 +16,10 @@ const NewsList = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [aiAnalysis, setAiAnalysis] = useState({});
+  
   const [analysisLoading, setAnalysisLoading] = useState({}); // 添加分析加载状态
+  const [importanceLoading, setImportanceLoading] = useState({}); // 添加重要性分析加载状态
+
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -45,6 +48,21 @@ const NewsList = () => {
       console.error('AI analysis failed:', error);
     } finally {
       setAnalysisLoading(prev => ({ ...prev, [idx]: false })); // 清除加载状态
+    }
+  };
+
+  const handleAiImportance = async (content, idx) => {
+    try {
+      setImportanceLoading(prev => ({ ...prev, [idx]: true }));
+      const res = await axios.post('/api/ai/importance', { content });
+      setAiAnalysis(prev => ({
+        ...prev,
+        [idx]: res.data.message
+      }));
+    } catch (error) {
+      console.error('AI importance analysis failed:', error);
+    } finally {
+      setImportanceLoading(prev => ({ ...prev, [idx]: false }));
     }
   };
 
@@ -92,6 +110,21 @@ const NewsList = () => {
                     分析中...
                   </Box>
                 ) : 'AI 分析'}
+              </Button>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onMouseEnter={() => handleAiImportance(item[0], idx)}
+                disabled={importanceLoading[idx]}
+                sx={{ mb: 1 }}
+              >
+                {importanceLoading[idx] ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                    分析中...
+                  </Box>
+                ) : 'AI 重要性分析'}
               </Button>
               {aiAnalysis[idx] && (
                 <TextField

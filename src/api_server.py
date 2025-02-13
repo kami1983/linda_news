@@ -12,6 +12,39 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL')
 
+@app.route('/api/ai/importance', methods=['POST'])
+async def ai_importance():
+    try:
+        # 获取 post 请求的 input 参数
+        data = await request.json
+        if data['content'] == '':
+            return jsonify({
+                'code': 400,
+                'message': 'content 不能为空'
+            }), 400
+        
+        ai_action = '分析新闻对投资大影响程度，思考对于投资是利空还是利好，明确告诉这个新闻是利空还是利好，之后给出重要性评分，从1到100，1表示完全不重要，100表示非常重要，还需要给出其重要的原因，不重要的原因'
+
+        client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_REQUEST_URI)
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": ai_action},
+                {"role": "user", "content": data['content']},
+            ],
+            stream=False
+        )
+        return jsonify({
+            'code': 200,
+            'message': response.choices[0].message.content
+        })
+    except Exception as e:
+        return jsonify({
+            'code': 500,
+            'message': str(e)
+        }), 500
+
+
 @app.route('/api/ai/news', methods=['POST'])
 async def ai():
     '''
@@ -28,7 +61,7 @@ async def ai():
     )
     print(response.choices[0].message.content)
     '''
-    print('Request ON：ai/news')
+
     try:
         # 获取 post 请求的 input 参数
         data = await request.json
