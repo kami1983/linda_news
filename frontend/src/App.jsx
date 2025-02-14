@@ -1,6 +1,9 @@
 import React from 'react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import NewsList from './components/NewsList';
+import UploadCsv from './components/UploadCsv';
+import Navigation from './components/Navigation';
 
 const theme = createTheme({
   palette: {
@@ -12,7 +15,14 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <NewsList />
+      <Router>
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<NewsList />} />
+          <Route path="/ainews" element={<NewsList />} />
+          <Route path="/upload" element={<UploadCsv />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 }

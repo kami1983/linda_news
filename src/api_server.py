@@ -187,7 +187,21 @@ async def get_news():
             'message': str(e)
         }), 500
 
-        
+@app.route('/api/upload-csv', methods=['POST'])
+def upload_csv():
+    if 'file' not in request.files:
+        return jsonify({'message': '没有文件上传'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'message': '没有选择文件'}), 400
+
+    if file and file.filename.endswith('.csv'):
+        file_path = os.path.join('uploads', file.filename)
+        file.save(file_path)
+        return jsonify({'message': '文件上传成功'}), 200
+
+    return jsonify({'message': '文件格式不正确'}), 400
 
 @app.errorhandler(404)
 async def not_found(error):
