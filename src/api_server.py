@@ -11,6 +11,7 @@ app = Quart(__name__)
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL')
+GEMMA2_9b_MODEL = os.getenv('GEMMA2_9b_MODEL')
 
 @app.route('/api/ai/importance', methods=['POST'])
 async def ai_importance():
@@ -34,9 +35,43 @@ async def ai_importance():
             ],
             stream=False
         )
+
         return jsonify({
             'code': 200,
             'message': response.choices[0].message.content
+        })
+    except Exception as e:
+        return jsonify({
+            'code': 500,
+            'message': str(e)
+        }), 500
+    
+@app.route('/api/ai/gemma2_9b_importance', methods=['POST'])
+async def ai_gemma2_9b_importance():
+     # 获取 post 请求的 input 参数
+    try:
+        data = await request.json
+        if data['content'] == '':
+            return jsonify({
+                'code': 400,
+                'message': 'content 不能为空'
+            }), 400
+        
+        ai_action = '分析新闻对投资大影响程度，思考对于投资是利空还是利好，明确告诉这个新闻是利空还是利好，之后给出重要性评分，从1到100，1表示完全不重要，100表示非常重要，除了评分数字其他的不要输出，只输出分数数字'
+
+        client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_REQUEST_URI)
+        response = client.chat.completions.create(
+            model=GEMMA2_9b_MODEL,
+            messages=[
+                {"role": "system", "content": ai_action},
+                {"role": "user", "content": data['content']},
+            ],
+            stream=False
+        )
+
+        return jsonify({
+            'code': 200,
+            'message': int(response.choices[0].message.content)
         })
     except Exception as e:
         return jsonify({
