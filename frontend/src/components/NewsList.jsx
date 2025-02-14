@@ -75,22 +75,22 @@ const NewsList = () => {
   return (
     <Container>
       <Typography variant="h4" sx={{ my: 4 }}>
-        华尔街见闻 AI 分析
+        投资分析参考
       </Typography>
       <Grid container spacing={3}>
         {news.map((item, idx) => (
           <Grid item xs={12} sm={6} md={4} key={idx}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h5" gutterBottom>
                   {item[2]}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="h6" color="text.primary">
                   {item[0]}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                {/* <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
                   {item[1]}
-                </Typography>
+                </Typography> */}
                 <Box sx={{ mt: 2 }}>
                   <Button 
                     variant="contained" 
