@@ -18,6 +18,10 @@ const NewsList = () => {
   const [aiAnalysis, setAiAnalysis] = useState({});
   const [analysisLoading, setAnalysisLoading] = useState({});
   const [importanceLoading, setImportanceLoading] = useState({});
+  const [categoryLoading, setCategoryLoading] = useState({});
+  const [conceptsLoading, setConceptsLoading] = useState({});
+  const [categoryData, setCategoryData] = useState({});
+  const [conceptsData, setConceptsData] = useState({});
   
 
   useEffect(() => {
@@ -69,6 +73,7 @@ const NewsList = () => {
     try {
       // 调用 /api/what_category 接口
       const res_category = await axios.post('/api/what_category', { content });
+      console.log('Debug. Category:', res_category.data.message);
       setCategoryData(prev => ({
         ...prev,
         [idx]: res_category.data.message
@@ -76,6 +81,7 @@ const NewsList = () => {
 
       // 调用 /api/what_concepts 接口
       const res_concepts = await axios.post('/api/what_concepts', { content });
+      console.log('Debug. Concepts:', res_concepts.data.message);
       setConceptsData(prev => ({
         ...prev,
         [idx]: res_concepts.data.message
@@ -111,14 +117,13 @@ const NewsList = () => {
                   {item[0]}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  Category
+                  {categoryData[idx] ? categoryData[idx] : 'Loading category...'}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  Concepts 1, Concepts 2, Concepts 3
+                  {conceptsData[idx] && Array.isArray(conceptsData[idx])
+                    ? conceptsData[idx].join(', ')
+                    : 'Loading concepts...'}
                 </Typography>
-                {/* <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                  {item[1]}
-                </Typography> */}
                 <Box sx={{ mt: 2 }}>
                   <Button 
                     variant="contained" 
@@ -149,6 +154,21 @@ const NewsList = () => {
                       </Box>
                     ) : 'AI 重要性分析'}
                   </Button>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={() => handleCategoryAndConcepts(item[0], idx)}
+                    disabled={categoryLoading[idx]}
+                    sx={{ mb: 1 }}
+                  >
+                    {categoryLoading[idx] ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                        分析中...
+                      </Box>
+                    ) : 'AI 分类和概念分析'}
+                  </Button>
+
                 </Box>
                 {aiAnalysis[idx] && (
                   <TextField
