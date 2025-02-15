@@ -18,6 +18,7 @@ const NewsList = () => {
   const [aiAnalysis, setAiAnalysis] = useState({});
   const [analysisLoading, setAnalysisLoading] = useState({});
   const [importanceLoading, setImportanceLoading] = useState({});
+  
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -64,6 +65,27 @@ const NewsList = () => {
     }
   };
 
+  const handleCategoryAndConcepts = async (content, idx) => {
+    try {
+      // 调用 /api/what_category 接口
+      const res_category = await axios.post('/api/what_category', { content });
+      setCategoryData(prev => ({
+        ...prev,
+        [idx]: res_category.data.message
+      }));
+
+      // 调用 /api/what_concepts 接口
+      const res_concepts = await axios.post('/api/what_concepts', { content });
+      setConceptsData(prev => ({
+        ...prev,
+        [idx]: res_concepts.data.message
+      }));
+      
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Container sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -87,6 +109,12 @@ const NewsList = () => {
                 </Typography>
                 <Typography variant="h6" color="text.primary">
                   {item[0]}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Category
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Concepts 1, Concepts 2, Concepts 3
                 </Typography>
                 {/* <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
                   {item[1]}
@@ -140,6 +168,7 @@ const NewsList = () => {
           </Grid>
         ))}
       </Grid>
+      
     </Container>
   );
 };

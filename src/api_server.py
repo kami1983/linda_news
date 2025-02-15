@@ -186,6 +186,43 @@ async def get_news():
             'code': 500,
             'message': str(e)
         }), 500
+    
+
+@app.route('/api/what_category', methods=['POST'])
+async def what_category():
+    '''
+    This API is used to determine the category of the news.
+    Input: 
+    {
+        "content": "Text"
+    }
+    Output:
+    {
+        "category": "Text"
+    }
+    '''
+    return jsonify({
+        'code': 200,
+        'message': 'Cars'
+    }), 200
+    
+@app.route('/api/what_concepts', methods=['POST'])
+async def what_concepts():
+    '''
+    This API is used to determine the concepts of the news.
+    Input: 
+    {
+        "content": "Text"
+    }
+    Output:
+    {
+        "concepts": ["Text1", "Text2", "Text3"]
+    }
+    '''
+    return jsonify({
+        'code': 200,
+        'message': ['Financial', 'Economy', 'Politics'] 
+    }), 200
 
 @app.route('/api/upload-csv', methods=['POST'])
 def upload_csv():
