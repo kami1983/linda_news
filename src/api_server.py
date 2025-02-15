@@ -132,20 +132,25 @@ async def ai():
 async def get_news():
     try:
         # 获取查询参数
-        date = request.args.get('date', '')
+        # date = request.args.get('date', '')
         columns = request.args.get('list', 'content,uri,publish_time').split(',')
 
-        # 验证日期格式
-        try:
-            if date:
-                datetime.strptime(date, '%Y-%m-%d')
-            else:
-                date = datetime.now().strftime('%Y-%m-%d')
-        except ValueError:
-            return jsonify({
-                'code': 400,
-                'message': '日期格式错误，请使用 YYYY-MM-DD 格式'
-            }), 400
+        # 获取查询参数
+        start = request.args.get('start', 0, type=int)
+        size = request.args.get('size', 10, type=int)
+
+
+        # # 验证日期格式
+        # try:
+        #     if date:
+        #         datetime.strptime(date, '%Y-%m-%d')
+        #     else:
+        #         date = datetime.now().strftime('%Y-%m-%d')
+        # except ValueError:
+        #     return jsonify({
+        #         'code': 400,
+        #         'message': '日期格式错误，请使用 YYYY-MM-DD 格式'
+        #     }), 400
 
         # 构建 SQL 查询 
         # SELECT * 
@@ -164,12 +169,12 @@ async def get_news():
         # 构建 SQL 查询
         query = f"SELECT {', '.join(valid_columns)} FROM linda_news.linda_news"
  
-        # 添加日期过滤条件
-        if date:
-            query += f" WHERE publish_time >= '{date}'"
-            query += f" AND publish_time < '{date}' + INTERVAL 1 DAY"
+        # # 添加日期过滤条件
+        # if date:
+        #     query += f" WHERE publish_time >= '{date}'"
+        #     query += f" AND publish_time < '{date}' + INTERVAL 1 DAY"
 
-        query += " ORDER BY publish_time DESC"
+        query += f" ORDER BY publish_time DESC LIMIT {start}, {size}"
 
         print(query)
         

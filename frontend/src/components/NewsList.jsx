@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Container, 
   Grid, 
@@ -22,24 +22,34 @@ const NewsList = () => {
   const [conceptsLoading, setConceptsLoading] = useState({});
   const [categoryData, setCategoryData] = useState({});
   const [conceptsData, setConceptsData] = useState({});
-  
+  const [start, setStart] = useState(0);
+  const size = 10; // 每次加载的条数
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const response = await axios.get('/api/news');
-        setNews(response.data);
-        response.data.forEach((item, idx) => handleCategoryAndConcepts(item[0], idx));
-      } catch (error) {
-        console.error('Error fetching news:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNews();
+    loadNews();
   }, []);
 
+  const loadNews = async () => {
+    setLoadingMore(true);
+    try {
+      const response = await axios.get(`/api/news?start=${start}&size=${size}`);
+      const newNews = response.data;
+      setNews(prevNews => [...prevNews, ...newNews]);
+      setStart(prevStart => prevStart + size);
+
+      // 使用 Promise.all 处理异步操作
+      await Promise.all(newNews.map((item, idx) => {
+        const globalIdx = start + idx; // 使用全局索引
+        return handleCategoryAndConcepts(item[0], globalIdx);
+      }));
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
   const handleAiAnalysis = async (content, idx) => {
     try {
@@ -73,25 +83,52 @@ const NewsList = () => {
 
   const handleCategoryAndConcepts = async (content, idx) => {
     try {
-      // 调用 /api/what_category 接口
       const res_category = await axios.post('/api/what_category', { content });
-      console.log('Debug. Category:', res_category.data.message);
       setCategoryData(prev => ({
         ...prev,
         [idx]: res_category.data.message
       }));
 
-      // 调用 /api/what_concepts 接口
       const res_concepts = await axios.post('/api/what_concepts', { content });
-      console.log('Debug. Concepts:', res_concepts.data.message);
       setConceptsData(prev => ({
         ...prev,
         [idx]: res_concepts.data.message
       }));
-      
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+  };
+
+  const observer = useRef();
+
+  useEffect(() => {
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !loadingMore) {
+        loadNews();
+      }
+    });
+
+    const loadMoreRef = document.querySelector('#load-more');
+    if (loadMoreRef) {
+      observer.current.observe(loadMoreRef);
+    }
+
+    return () => {
+      if (loadMoreRef) {
+        observer.current.unobserve(loadMoreRef);
+      }
+    };
+  }, [loadingMore]);
+
+  const calculateTimeDifference = (publishedTime) => {
+    const publishedDate = new Date(publishedTime);
+    const currentDate = new Date();
+    const timeDifference = currentDate - publishedDate;
+    const hoursDifference = Math.floor(timeDifference / (1000 * 60 * 60));
+    if (hoursDifference > 24) {
+      return Math.floor(hoursDifference / 24) + '天'+ Math.floor(hoursDifference % 24) + '小时前';
+    }
+    return hoursDifference + '小时前';
   };
 
   if (loading) {
@@ -113,7 +150,11 @@ const NewsList = () => {
             <Card>
               <CardContent>
                 <Typography variant="h5" gutterBottom>
+                {/* Thu, 13 Feb 2025 14:06:36 GMT */}
                   {item[2]}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                {calculateTimeDifference(item[2])}
                 </Typography>
                 <Typography variant="h6" color="text.primary">
                   {item[0]}
@@ -156,21 +197,6 @@ const NewsList = () => {
                       </Box>
                     ) : 'AI 重要性分析'}
                   </Button>
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    onClick={() => handleCategoryAndConcepts(item[0], idx)}
-                    disabled={categoryLoading[idx]}
-                    sx={{ mb: 1 }}
-                  >
-                    {categoryLoading[idx] ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                        分析中...
-                      </Box>
-                    ) : 'AI 分类和概念分析'}
-                  </Button>
-
                 </Box>
                 {aiAnalysis[idx] && (
                   <TextField
@@ -190,7 +216,9 @@ const NewsList = () => {
           </Grid>
         ))}
       </Grid>
-      
+      <div id="load-more" style={{ height: '20px', margin: '10px 0', textAlign: 'center' }}>
+        {loadingMore && <CircularProgress />}
+      </div>
     </Container>
   );
 };
