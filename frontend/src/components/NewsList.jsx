@@ -29,6 +29,7 @@ const NewsList = () => {
       try {
         const response = await axios.get('/api/news');
         setNews(response.data);
+        response.data.forEach((item, idx) => handleCategoryAndConcepts(item[0], idx));
       } catch (error) {
         console.error('Error fetching news:', error);
       } finally {
@@ -38,6 +39,7 @@ const NewsList = () => {
 
     fetchNews();
   }, []);
+
 
   const handleAiAnalysis = async (content, idx) => {
     try {
