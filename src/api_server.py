@@ -1,3 +1,4 @@
+import csv
 from quart import Quart, request, jsonify
 from datetime import datetime
 from openai import OpenAI
@@ -267,6 +268,38 @@ async def upload_csv():
     await file.save(file_path)
 
     return jsonify({'code': 200, 'message': 'File uploaded successfully'})
+
+@app.route('/api/read_csv_data', methods=['GET'])
+async def read_csv_data():
+    '''
+    This API is used to read the category data.
+    '''
+    columns = request.args.get('list', '行业').split(',')
+    type = request.args.get('type', 1, type=int)
+    if type not in [1, 2]:
+        return jsonify({'code': 400, 'message': 'Invalid type parameter'}), 400
+
+    if type == 1:
+        filename = 'concept.csv'
+    elif type == 2:
+        filename = 'category.csv'
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        return jsonify({'code': 404, 'message': 'File not found'}), 404
+
+    try:
+        with open(file_path, mode='r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            # 获取所有行的  columns 列 
+            data = []
+            for row in reader:
+                # data.append({col: row[col] for col in columns})
+                data.append([row[col] for col in columns])
+            
+        return jsonify({'code': 200, 'data': data})
+    except Exception as e:
+        return jsonify({'code': 500, 'message': f'Error reading file: {str(e)}'}), 500
 
 @app.errorhandler(404)
 async def not_found(error):
