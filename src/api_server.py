@@ -13,6 +13,9 @@ OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL')
 GEMMA2_9b_MODEL = os.getenv('GEMMA2_9b_MODEL')
 
+UPLOAD_FOLDER = os.getenv('CSV_UPLOAD_FOLDER')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 @app.route('/api/ai/importance', methods=['POST'])
 async def ai_importance():
     try:
@@ -229,35 +232,49 @@ async def what_concepts():
         'message': ['Financial', 'Economy', 'Politics'] 
     }), 200
 
-@app.route('/api/upload-csv', methods=['POST'])
-def upload_csv():
-    if 'file' not in request.files:
-        return jsonify({'message': '没有文件上传'}), 400
+@app.route('/api/upload_csv', methods=['POST'])
+async def upload_csv():
+    '''
+    # 上传概念数据 CSV
+    curl -F "file=@path/to/your/concept.csv" -F "type=1" http://localhost:5001/api/upload_csv
 
-    file = request.files['file']
+    # 上传行业数据 CSV
+    curl -F "file=@path/to/your/category.csv" -F "type=2" http://localhost:5001/api/upload_csv
+
+    # 上传无效类型
+    curl -F "file=@path/to/your/file.csv" -F "type=3" http://localhost:5001/api/upload_csv
+    '''
+    
+    files = await request.files
+    if 'file' not in files:
+        return jsonify({'code': 400, 'message': 'No file part'}), 400
+
+    file = files['file']
     if file.filename == '':
-        return jsonify({'message': '没有选择文件'}), 400
+        return jsonify({'code': 400, 'message': 'No selected file'}), 400
 
-    if file and file.filename.endswith('.csv'):
-        file_path = os.path.join('uploads', file.filename)
-        file.save(file_path)
-        return jsonify({'message': '文件上传成功'}), 200
+    form = await request.form
+    type = form.get('type', type=int)
+    if type not in [1, 2]:
+        return jsonify({'code': 400, 'message': 'Invalid type parameter'}), 400
 
-    return jsonify({'message': '文件格式不正确'}), 400
+    if type == 1:
+        filename = 'concept.csv'
+    elif type == 2:
+        filename = 'category.csv'
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    await file.save(file_path)
+
+    return jsonify({'code': 200, 'message': 'File uploaded successfully'})
 
 @app.errorhandler(404)
 async def not_found(error):
-    return jsonify({
-        'code': 404,
-        'message': '接口不存在'
-    }), 404
+    return jsonify({'code': 404, 'message': '接口不存在'}), 404
 
 @app.errorhandler(405)
 async def method_not_allowed(error):
-    return jsonify({
-        'code': 405,
-        'message': '请求方法不允许'
-    }), 405
+    return jsonify({'code': 405, 'message': '请求方法不允许'}), 405
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
