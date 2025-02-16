@@ -38,11 +38,13 @@ const NewsList = () => {
       setNews(prevNews => [...prevNews, ...newNews]);
       setStart(prevStart => prevStart + size);
 
-      // 使用 Promise.all 处理异步操作
-      await Promise.all(newNews.map((item, idx) => {
-        const globalIdx = start + idx; // 使用全局索引
-        return handleCategoryAndConcepts(item[0], globalIdx);
-      }));
+      // 使用 setTimeout 模拟延迟加载
+      setTimeout(async () => {
+        await Promise.all(newNews.map((item, idx) => {
+          const globalIdx = start + idx; // 使用全局索引
+          return handleCategoryAndConcepts(item[0], globalIdx);
+        }));
+      }, 1000); // 延迟 1 秒加载
     } catch (error) {
       console.error('Error fetching news:', error);
     } finally {
@@ -150,11 +152,10 @@ const NewsList = () => {
             <Card>
               <CardContent>
                 <Typography variant="h5" gutterBottom>
-                {/* Thu, 13 Feb 2025 14:06:36 GMT */}
                   {item[2]}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                {calculateTimeDifference(item[2])}
+                  {calculateTimeDifference(item[2])}
                 </Typography>
                 <Typography variant="h6" color="text.primary">
                   {item[0]}
@@ -196,6 +197,20 @@ const NewsList = () => {
                         分析中...
                       </Box>
                     ) : 'AI 重要性分析'}
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={() => handleCategoryAndConcepts(item[0], idx)}
+                    disabled={categoryLoading[idx]}
+                    sx={{ mb: 1 }}
+                  >
+                    {categoryLoading[idx] ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                        分析中...
+                      </Box>
+                    ) : 'AI 分类和概念分析'}
                   </Button>
                 </Box>
                 {aiAnalysis[idx] && (

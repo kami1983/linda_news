@@ -14,9 +14,9 @@ async def gemma2Assister(content, action):
     return await aiAssister(content, action, GEMMA2_9b_MODEL)
 
 async def aiAssister(content, action, model):
-    print(f'aiAssister: {content}, {action}, {model}')
-    print(f'OPENAI_API_KEY: {OPENAI_API_KEY}')
-    print(f'OPENAI_REQUEST_URI: {OPENAI_REQUEST_URI}')
+    # print(f'aiAssister: {content}, {action}, {model}')
+    # print(f'OPENAI_API_KEY: {OPENAI_API_KEY}')
+    # print(f'OPENAI_REQUEST_URI: {OPENAI_REQUEST_URI}')
     client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_REQUEST_URI)
     response = client.chat.completions.create(
         model=model,
