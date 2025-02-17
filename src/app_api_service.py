@@ -5,9 +5,9 @@ from openai import OpenAI
 import asyncio
 import aiomysql
 import os
-from ai_manager import gemma2Assister, openaiAssister
+from libs.ai_manager import gemma2Assister, openaiAssister
 from config import get_db_pool
-from csv_manager import getCsvFilePath, readCsvData  
+from libs.csv_manager import getCsvFilePath, readCsvData  
 
 app = Quart(__name__)
 
