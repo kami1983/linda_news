@@ -40,7 +40,7 @@ const UploadCsv = () => {
   return (
     <Container maxWidth="sm">
       <Typography variant="h4" sx={{ my: 4, textAlign: 'center' }}>
-        上传 CSV 文件
+        上传知识库 CSV 文件
       </Typography>
       <Box sx={{ mb: 2 }}>
         <FormControl fullWidth>

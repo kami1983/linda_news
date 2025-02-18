@@ -46,7 +46,6 @@ async def run_ai_filler():
         conn.close()
         
         
-
 def run_query_news():
     '''
     查询未填充分类和概念的新闻，建立 status = 0 的 linda_news_category 和 linda_news_concepts 数据

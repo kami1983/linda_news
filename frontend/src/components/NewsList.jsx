@@ -22,31 +22,49 @@ const NewsList = () => {
   const [conceptsLoading, setConceptsLoading] = useState({});
   const [categoryData, setCategoryData] = useState({});
   const [conceptsData, setConceptsData] = useState({});
+  const [retryCount, setRetryCount] = useState(0);
   const [start, setStart] = useState(0);
   const size = 10; // 每次加载的条数
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // 最大重试次数
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     loadNews();
   }, []);
 
+  useEffect(() => {
+    if (retryCount === 0) {
+      loadNews();
+    }
+  }, [retryCount]);
+
+  const resetRetryCount = () => {
+    setRetryCount(0);
+    loadNews();
+  };
+
   const loadNews = async () => {
     setLoadingMore(true);
     try {
-      const response = await axios.get(`/api/news?start=${start}&size=${size}`);
-      const newNews = response.data;
-      setNews(prevNews => [...prevNews, ...newNews]);
-      setStart(prevStart => prevStart + size);
+      if (retryCount < MAX_RETRIES) {
+        const response = await axios.get(`/api/news?start=${start}&size=${size}`);
+        const newNews = response.data;
+        setNews(prevNews => [...prevNews, ...newNews]);
+        setStart(prevStart => prevStart + size);
 
-      // 使用 setTimeout 模拟延迟加载
-      setTimeout(async () => {
-        await Promise.all(newNews.map((item, idx) => {
-          const globalIdx = start + idx; // 使用全局索引
-          return handleCategoryAndConcepts(item[3], globalIdx);
-        }));
-      }, 1000); // 延迟 1 秒加载
+        // 使用 setTimeout 模拟延迟加载
+        setTimeout(async () => {
+          await Promise.all(newNews.map((item, idx) => {
+            const globalIdx = start + idx; // 使用全局索引
+            return handleCategoryAndConcepts(item[3], globalIdx);
+          }));
+        }, 1000); // 延迟 1 秒加载
+      }
     } catch (error) {
       console.error('Error fetching news:', error);
+      setRetryCount(prevCount => prevCount + 1);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -146,6 +164,11 @@ const NewsList = () => {
       <Typography variant="h4" sx={{ my: 4 }}>
         投资分析参考
       </Typography>
+      {retryCount >= MAX_RETRIES && (
+        <Button onClick={resetRetryCount} variant="contained" color="primary">
+          Retry fetch news
+        </Button>
+      )}
       <Grid container spacing={3}>
         {news.map((item, idx) => (
           <Grid item xs={12} sm={6} md={4} key={idx}>

@@ -1,13 +1,20 @@
 import csv
-from quart import Quart, request, jsonify
-from datetime import datetime
+from quart import Quart, make_response, request, jsonify
+from datetime import datetime, timedelta, timezone
 from openai import OpenAI
+from functools import wraps
+import jwt
 import asyncio
 import aiomysql
 import os
 from libs.ai_manager import constructAiActionOfExtractCategory, extractCategoryFromNews, gemma2Assister, openaiAssister, qwenAssister
 from config import get_db_pool
 from libs.csv_manager import getCsvFilePath, readCsvData  
+
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 app = Quart(__name__)
 
@@ -21,6 +28,110 @@ app = Quart(__name__)
 
 CSV_TYPE_CATEGORY = 1
 CSV_TYPE_CONCEPT = 2
+
+
+# Secret key for JWT
+SECRET_KEY = os.getenv('ADMIN_SESSION_SECRET', '')
+admin_user = os.getenv('ADMIN_USER', 'admin')
+admin_password = os.getenv('ADMIN_PASSWORD', '123456')
+
+# Mock database for user credentials
+USERS = {
+    admin_user: admin_password
+}
+
+# Generate JWT token
+def generate_token(username):
+    payload = {
+        "username": username,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),  # 使用时区感知的 UTC 时间
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+# Decode and validate JWT token
+def decode_token(token):
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return decoded
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def login_required(f):
+    @wraps(f)
+    async def decorated_function(*args, **kwargs):
+        token = request.cookies.get("auth_token")
+        if not token:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_data = decode_token(token)
+        if not user_data:
+            return jsonify({"error": "Invalid or expired token"}), 401
+
+        # 将解码后的用户数据传递给实际的视图函数
+        kwargs['user_data'] = user_data
+        return await f(*args, **kwargs)
+    return decorated_function
+
+# Login endpoint
+@app.route('/login', methods=['POST'])
+async def login():
+    data = await request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    # Validate user credentials
+    if username in USERS and USERS[username] == password:
+        token = generate_token(username)
+        response = await make_response(jsonify({"message": "Login successful"}))
+        response.set_cookie("auth_token", token, httponly=True)
+        return response
+    return jsonify({"error": "Invalid credentials"}), 401
+
+# 获取当前登录的用户
+@app.route('/current_user', methods=['GET'])
+async def current_user():
+    token = request.cookies.get("auth_token")
+    if not token:
+        # 如果没有 token，直接返回未授权状态
+        return jsonify({"status": False, "message": "Unauthorized"}), 200
+
+    try:
+        # 解码 token，decode_token 应该是一个实现了 JWT 解码逻辑的方法
+        user_data = decode_token(token)
+        if not user_data:
+            return jsonify({"status": False, "message": "Invalid or expired token"}), 200
+        
+        # 返回解码后的用户数据
+        return jsonify({"status": True, "data": user_data}), 200
+    except Exception as e:
+        # 捕获潜在的解码异常（比如格式错误、过期等）
+        return jsonify({"status": False, "message": str(e)}), 200
+
+
+# Logout endpoint
+@app.route('/logout', methods=['POST'])
+async def logout():
+    response = await make_response(jsonify({"message": "Logged out"}))
+    response.delete_cookie("auth_token")
+    return response
+
+
+# Protected API endpoint
+@app.route('/protected', methods=['GET'])
+@login_required
+async def protected(user_data):
+    token = request.cookies.get("auth_token")
+    if not token:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_data = decode_token(token)
+    if not user_data:
+        return jsonify({"error": "Invalid or expired token"}), 401
+
+    return jsonify({"message": f"Hello, {user_data['username']}!"})
+
 
 @app.route('/api/ai/importance', methods=['POST'])
 async def ai_importance():
@@ -247,7 +358,8 @@ async def what_concepts():
             
 
 @app.route('/api/upload_csv', methods=['POST'])
-async def upload_csv():
+@login_required
+async def upload_csv(user_data):
     '''
     # 上传概念数据 CSV
     curl -F "file=@path/to/your/concept.csv" -F "type=1" http://localhost:5001/api/upload_csv
@@ -289,29 +401,6 @@ async def read_csv_data():
         return jsonify({'code': 200, 'data': data})
     except Exception as e:
         return jsonify({'code': 500, 'message': str(e)}), 500
-
-    # if type == 1:
-    #     filename = 'concept.csv'
-    # elif type == 2:
-    #     filename = 'category.csv'
-
-    # file_path = os.path.join(UPLOAD_FOLDER, filename)
-    # if not os.path.exists(file_path):
-    #     return jsonify({'code': 404, 'message': 'File not found'}), 404
-
-    # try:
-    #     with open(file_path, mode='r', encoding='utf-8') as csvfile:
-    #         reader = csv.DictReader(csvfile)
-    #         # 获取所有行的  columns 列 
-    #         data = []
-    #         for row in reader:
-    #             # data.append({col: row[col] for col in columns})
-    #             data.append([row[col] for col in columns])
-            
-    #     return jsonify({'code': 200, 'data': data})
-    # except Exception as e:
-    #     return jsonify({'code': 500, 'message': f'Error reading file: {str(e)}'}), 500
-    
 
 
 @app.errorhandler(404)
