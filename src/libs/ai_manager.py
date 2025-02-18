@@ -5,6 +5,7 @@ from openai import OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL')
+QWEN_2_5_32b_MODEL = os.getenv('QWEN_2_5_32b_MODEL')
 GEMMA2_9b_MODEL = os.getenv('GEMMA2_9b_MODEL')
 
 async def openaiAssister(content, action):
@@ -12,6 +13,9 @@ async def openaiAssister(content, action):
     
 async def gemma2Assister(content, action):
     return await aiAssister(content, action, GEMMA2_9b_MODEL)
+
+async def qwenAssister(content, action):
+    return await aiAssister(content, action, QWEN_2_5_32b_MODEL)
 
 async def aiAssister(content, action, model):
     # print(f'aiAssister: {content}, {action}, {model}')

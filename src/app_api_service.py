@@ -5,7 +5,7 @@ from openai import OpenAI
 import asyncio
 import aiomysql
 import os
-from libs.ai_manager import gemma2Assister, openaiAssister
+from libs.ai_manager import gemma2Assister, openaiAssister, qwenAssister
 from config import get_db_pool
 from libs.csv_manager import getCsvFilePath, readCsvData  
 
@@ -217,13 +217,14 @@ async def what_category():
     category_list = [item for sublist in category_list for item in sublist]
     category_str = '|'.join(category_list)
     
-    # ai_action = f'根据新闻内容，判断新闻与那个行业最相关，行业列表：{category_str}，输出行业名称，不要输出其他内容'
-    # message = await openaiAssister(data['content'], ai_action)
-    # category = message.content.split('</think>')[1].strip().strip('\t')
+    ai_action = f'根据新闻内容，判断新闻与那个行业最相关，行业列表：{category_str}，输出一个最相关的行业名称，不要输出其他内容'
+    # message = await qwenAssister(data['content'], ai_action)
+    message = await openaiAssister(data['content'], ai_action)
+    category = message.content.split('</think>')[1].strip().strip('\t')
 
     return jsonify({
         'code': 200,
-        'message': 'Cars'
+        'message': category
     }), 200
     
 @app.route('/api/what_concepts', methods=['POST'])

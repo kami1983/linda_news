@@ -1,10 +1,8 @@
 import os
 import pymysql
 from datetime import datetime
-from dotenv import load_dotenv
+from libs.db_conn import getDbConn
 
-# 加载环境变量
-load_dotenv()
 
 class MySQLPipeline:
     def __init__(self):
@@ -12,14 +10,7 @@ class MySQLPipeline:
         self.cur = None
 
     def open_spider(self, spider):
-        self.conn = pymysql.connect(
-            host=os.getenv('MYSQL_HOST', 'localhost'),
-            port=int(os.getenv('MYSQL_PORT', 3306)),
-            user=os.getenv('MYSQL_USER', 'root'),
-            password=os.getenv('MYSQL_PASSWORD', '123456'),
-            database=os.getenv('MYSQL_DBNAME', 'wscn'),
-            charset='utf8mb4'
-        )
+        self.conn = getDbConn()
         self.cur = self.conn.cursor()
 
     def process_item(self, item, spider):
