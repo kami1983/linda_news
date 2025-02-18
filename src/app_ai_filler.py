@@ -5,13 +5,47 @@ import time
 import subprocess
 import sys
 
+from libs.ai_manager import extractCategoryFromNews, extractConceptsFromNews
 from libs.db_conn import getDbConn
+
+CONST_MAX_FILL_COUNT = 10
 
 async def run_ai_filler():
     '''
     填充新闻分类和概念
     '''
-    pass
+    conn = getDbConn()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT id, news_id FROM linda_news_category WHERE status = 0 ORDER BY id DESC LIMIT %s", (CONST_MAX_FILL_COUNT,))
+        # 获取最新的 news_id
+        news_ids = cursor.fetchall()
+        news_ids = [news[1] for news in news_ids]
+        news_ids_str = ','.join(map(str, news_ids))
+        # print(news_ids_str)
+
+        # 查询 news_id 的新闻内容
+        cursor.execute(f"SELECT id, content FROM linda_news WHERE id IN ({news_ids_str})")
+        news_list = cursor.fetchall()
+        for news in news_list:
+            
+            category = await extractCategoryFromNews(news[1])
+            print('category: ', news[0], category)
+            cursor.execute("UPDATE linda_news_category SET category = %s, status = 1 WHERE news_id = %s", (category, news[0]))
+
+            # 查询 news_id 的新闻概念
+            concepts = await extractConceptsFromNews(news[1])
+            print('concepts: ', news[0], concepts)
+            cursor.execute("UPDATE linda_news_concepts SET concepts = %s, status = 1 WHERE news_id = %s", (concepts, news[0]))
+            conn.commit()
+
+    except Exception as e:
+        print(f"Error during query execution: {e}")
+    finally:
+        conn.close()
+        
+        
 
 def run_query_news():
     '''
@@ -29,25 +63,29 @@ def run_query_news():
         cursor.execute("SELECT COUNT(*) FROM linda_news_concepts WHERE status = 0")
         concepts_count = cursor.fetchone()[0]
 
-        if category_count > 20 or concepts_count > 20:
-            print("Too many pending entries, skipping fill queue.")
+        if category_count >= CONST_MAX_FILL_COUNT or concepts_count >= CONST_MAX_FILL_COUNT:
+            print("Too many pending entries, skipping fill queue. current queue: category_count: %s, concepts_count: %s" % (category_count, concepts_count))
             return
+        
+        fill_count = CONST_MAX_FILL_COUNT - category_count
 
         # 获取最新的 news_id
-        cursor.execute("SELECT MAX(news_id) FROM linda_news_category")
-        max_news_id = cursor.fetchone()[0] or 0
-
-        # 查询 linda_news 表中 id > max_news_id 的最新 20 条数据
-        cursor.execute("SELECT id FROM linda_news WHERE id > %s ORDER BY id DESC LIMIT 20", (max_news_id,))
+        # SELECT ln.*
+        # FROM linda_news AS ln
+        # LEFT JOIN linda_news_category AS lnc ON ln.id = lnc.news_id
+        # WHERE lnc.news_id IS NULL
+        # ORDER BY ln.id DESC
+        # LIMIT 20;
+        cursor.execute('''
+            SELECT ln.*
+            FROM linda_news AS ln
+            LEFT JOIN linda_news_category AS lnc ON ln.id = lnc.news_id
+            WHERE lnc.news_id IS NULL
+            ORDER BY ln.id DESC
+            LIMIT %s
+        ''', (fill_count,))
+       
         news_data = cursor.fetchall()
-
-        # 如果 news_data 为空，尝试获取最旧的 news_id
-        if not news_data:
-            cursor.execute("SELECT MIN(news_id) FROM linda_news_category")
-            min_news_id = cursor.fetchone()[0] or 0
-
-            cursor.execute("SELECT id FROM linda_news WHERE id < %s ORDER BY id DESC LIMIT 20", (min_news_id,))
-            news_data = cursor.fetchall()
 
         # 插入数据到 linda_news_category 和 linda_news_concepts
         for news in news_data:

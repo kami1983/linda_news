@@ -42,7 +42,7 @@ const NewsList = () => {
       setTimeout(async () => {
         await Promise.all(newNews.map((item, idx) => {
           const globalIdx = start + idx; // 使用全局索引
-          return handleCategoryAndConcepts(item[0], globalIdx);
+          return handleCategoryAndConcepts(item[3], globalIdx);
         }));
       }, 1000); // 延迟 1 秒加载
     } catch (error) {
@@ -83,15 +83,15 @@ const NewsList = () => {
     }
   };
 
-  const handleCategoryAndConcepts = async (content, idx) => {
+  const handleCategoryAndConcepts = async (news_id, idx) => {
     try {
-      const res_category = await axios.post('/api/what_category', { content });
+      const res_category = await axios.post('/api/what_category', { news_id });
       setCategoryData(prev => ({
         ...prev,
         [idx]: res_category.data.message
       }));
 
-      const res_concepts = await axios.post('/api/what_concepts', { content });
+      const res_concepts = await axios.post('/api/what_concepts', { news_id });
       setConceptsData(prev => ({
         ...prev,
         [idx]: res_concepts.data.message

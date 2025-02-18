@@ -5,7 +5,7 @@ from openai import OpenAI
 import asyncio
 import aiomysql
 import os
-from libs.ai_manager import gemma2Assister, openaiAssister, qwenAssister
+from libs.ai_manager import constructAiActionOfExtractCategory, extractCategoryFromNews, gemma2Assister, openaiAssister, qwenAssister
 from config import get_db_pool
 from libs.csv_manager import getCsvFilePath, readCsvData  
 
@@ -128,24 +128,11 @@ async def get_news():
     try:
         # 获取查询参数
         # date = request.args.get('date', '')
-        columns = request.args.get('list', 'content,uri,publish_time').split(',')
+        columns = request.args.get('list', 'content,uri,publish_time,id').split(',')
 
         # 获取查询参数
         start = request.args.get('start', 0, type=int)
         size = request.args.get('size', 10, type=int)
-
-
-        # # 验证日期格式
-        # try:
-        #     if date:
-        #         datetime.strptime(date, '%Y-%m-%d')
-        #     else:
-        #         date = datetime.now().strftime('%Y-%m-%d')
-        # except ValueError:
-        #     return jsonify({
-        #         'code': 400,
-        #         'message': '日期格式错误，请使用 YYYY-MM-DD 格式'
-        #     }), 400
 
         # 构建 SQL 查询 
         # SELECT * 
@@ -155,7 +142,7 @@ async def get_news():
         # AND publish_time < CURDATE() + INTERVAL 1 DAY
         # ORDER BY 
         # publish_time DESC;
-        allowed_columns = {'id', 'item_id', 'title', 'content', 'publish_time', 'author', 'uri'}
+        allowed_columns = {'id', 'title', 'content', 'publish_time', 'author', 'uri'}
         valid_columns = [col for col in columns if col in allowed_columns]
         
         # 获取数据库连接池
@@ -163,15 +150,7 @@ async def get_news():
         
         # 构建 SQL 查询
         query = f"SELECT {', '.join(valid_columns)} FROM linda_news.linda_news"
- 
-        # # 添加日期过滤条件
-        # if date:
-        #     query += f" WHERE publish_time >= '{date}'"
-        #     query += f" AND publish_time < '{date}' + INTERVAL 1 DAY"
-
         query += f" ORDER BY publish_time DESC LIMIT {start}, {size}"
-
-        print(query)
         
         # 执行 SQL 查询，并且添加列信息
         async with pool.acquire() as conn:
@@ -194,7 +173,7 @@ async def what_category():
     This API is used to determine the category of the news.
     Input: 
     {
-        "content": "Text"
+        "news_id": "Text"
     }
     Output:
     {
@@ -202,30 +181,32 @@ async def what_category():
     }
     '''
     data = await request.json
-    if data['content'] == '':
+    if data['news_id'] == '':
         return jsonify({
             'code': 400,
-            'message': 'content 不能为空'
+            'message': 'news_id 不能为空'
         }), 400
     
-    # 调用 read_csv_data 接口
-    category_list = readCsvData(['行业'], CSV_TYPE_CATEGORY)
-    if category_list is None or len(category_list) == 0:
-        raise Exception('category_list is None')
-    
-    # category_list 是二维数组，需要转换成一维数组
-    category_list = [item for sublist in category_list for item in sublist]
-    category_str = '|'.join(category_list)
-    
-    ai_action = f'根据新闻内容，判断新闻与那个行业最相关，行业列表：{category_str}，输出一个最相关的行业名称，不要输出其他内容'
-    # message = await qwenAssister(data['content'], ai_action)
-    message = await openaiAssister(data['content'], ai_action)
-    category = message.content.split('</think>')[1].strip().strip('\t')
+    # 从数据表 linda_news_category 中查询 news_id 对应的 category
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT category FROM linda_news_category WHERE news_id = %s", (data['news_id'],))
+            result = await cur.fetchone()
+            if result:
+                return jsonify({
+                    'code': 200,
+                    'message': result[0]
+                }), 200
+            else:
+                return jsonify({
+                    'code': 200,
+                    'message': 'None'
+                }), 200
+            
 
-    return jsonify({
-        'code': 200,
-        'message': category
-    }), 200
+            
+
     
 @app.route('/api/what_concepts', methods=['POST'])
 async def what_concepts():
@@ -233,17 +214,37 @@ async def what_concepts():
     This API is used to determine the concepts of the news.
     Input: 
     {
-        "content": "Text"
+        "news_id": "Text"
     }
     Output:
     {
         "concepts": ["Text1", "Text2", "Text3"]
     }
     '''
-    return jsonify({
-        'code': 200,
-        'message': ['Financial', 'Economy', 'Politics'] 
-    }), 200
+    data = await request.json
+    if data['news_id'] == '':
+        return jsonify({
+            'code': 400,
+            'message': 'news_id 不能为空'
+        }), 400
+    
+    # 从数据表 linda_news_concepts 中查询 news_id 对应的 concepts
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT concepts FROM linda_news_concepts WHERE news_id = %s", (data['news_id'],))
+            result = await cur.fetchone()
+            if result:
+                return jsonify({
+                    'code': 200,
+                    'message': result[0].split(',')
+                }), 200
+            else:
+                return jsonify({
+                    'code': 200,
+                    'message': []
+                }), 200
+            
 
 @app.route('/api/upload_csv', methods=['POST'])
 async def upload_csv():
