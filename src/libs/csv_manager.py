@@ -1,6 +1,11 @@
 import os
 import csv
 
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
 UPLOAD_FOLDER = os.getenv('CSV_UPLOAD_FOLDER')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
