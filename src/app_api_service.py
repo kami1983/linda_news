@@ -75,7 +75,7 @@ def login_required(f):
     return decorated_function
 
 # Login endpoint
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 async def login():
     data = await request.json
     username = data.get("username")
@@ -90,7 +90,7 @@ async def login():
     return jsonify({"error": "Invalid credentials"}), 401
 
 # 获取当前登录的用户
-@app.route('/current_user', methods=['GET'])
+@app.route('/api/current_user', methods=['GET'])
 async def current_user():
     token = request.cookies.get("auth_token")
     if not token:
@@ -111,7 +111,7 @@ async def current_user():
 
 
 # Logout endpoint
-@app.route('/logout', methods=['POST'])
+@app.route('/api/logout', methods=['POST'])
 async def logout():
     response = await make_response(jsonify({"message": "Logged out"}))
     response.delete_cookie("auth_token")
@@ -119,7 +119,7 @@ async def logout():
 
 
 # Protected API endpoint
-@app.route('/protected', methods=['GET'])
+@app.route('/api/protected', methods=['GET'])
 @login_required
 async def protected(user_data):
     token = request.cookies.get("auth_token")

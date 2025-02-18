@@ -140,16 +140,32 @@ const NewsList = () => {
     };
   }, [loadingMore]);
 
+  // 计算时间差 
+  // publishedTime=Tue, 18 Feb 2025 14:41:04 GMT
   const calculateTimeDifference = (publishedTime) => {
     const publishedDate = new Date(publishedTime);
     const currentDate = new Date();
-    const timeDifference = currentDate - publishedDate;
+    console.log('publishedTime:', publishedTime);
+    console.log('publishedDate:', publishedDate);
+    console.log('currentDate:', currentDate);
+
+    // 将时间转换为 UTC 时间戳
+    const timezoneOffset = 8 * 60 * 60 * 1000; // 8小时的毫秒数
+    const publishedTimeUTC = publishedDate.getTime() ;
+    const currentTimeUTC = currentDate.getTime() + timezoneOffset;
+
+    const timeDifference = currentTimeUTC - publishedTimeUTC;
     const hoursDifference = Math.floor(timeDifference / (1000 * 60 * 60));
     if (hoursDifference > 24) {
       return Math.floor(hoursDifference / 24) + '天'+ Math.floor(hoursDifference % 24) + '小时前';
     }
     return hoursDifference + '小时前';
   };
+
+
+  
+  console.log(calculateTimeDifference("Tue, 18 Feb 2025 14:41:04 GMT"));
+  
 
   if (loading) {
     return (

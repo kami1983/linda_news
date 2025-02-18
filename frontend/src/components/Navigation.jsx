@@ -15,6 +15,9 @@ function Navigation() {
         <li className="nav-item">
           <Link to="/upload" className="nav-link">Knowledge Base</Link>
         </li>
+        <li className="nav-item">
+          <Link to="/login" className="nav-link">Dashboard</Link>
+        </li>
       </ul>
     </nav>
   );
