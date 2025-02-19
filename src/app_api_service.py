@@ -7,7 +7,7 @@ import jwt
 import asyncio
 import aiomysql
 import os
-from libs.ai_manager import constructAiActionOfExtractCategory, extractCategoryFromNews, gemma2Assister, openaiAssister, qwenAssister
+from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister
 from config import get_db_pool
 from libs.csv_manager import getCsvFilePath, readCsvData  
 
@@ -17,14 +17,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Quart(__name__)
-
-# OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-# OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
-# OPENAI_MODEL = os.getenv('OPENAI_MODEL')
-# GEMMA2_9b_MODEL = os.getenv('GEMMA2_9b_MODEL')
-
-# UPLOAD_FOLDER = os.getenv('CSV_UPLOAD_FOLDER')
-# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CSV_TYPE_CATEGORY = 1
 CSV_TYPE_CONCEPT = 2
@@ -156,7 +148,7 @@ async def ai_importance():
         #     stream=False
         # )
 
-        message = await openaiAssister(data['content'], ai_action)
+        message = await aiRModleAssister(data['content'], ai_action)
 
         return jsonify({
             'code': 200,
@@ -181,7 +173,7 @@ async def ai_gemma2_9b_importance():
         
         ai_action = '分析新闻对投资大影响程度，思考对于投资是利空还是利好，明确告诉这个新闻是利空还是利好，之后给出重要性评分，从1到100，1表示完全不重要，100表示非常重要，除了评分数字其他的不要输出，只输出分数数字'
 
-        message = await gemma2Assister(data['content'], ai_action)
+        message = await aiVModleAssister(data['content'], ai_action)
 
         return jsonify({
             'code': 200,
@@ -222,7 +214,7 @@ async def ai():
         
         ai_action = '分析新闻：对宏观环境的影响，对微观行业的影响，对投资者情绪对影响。投资方面：提示可能的潜在风险，提出几个头脑风暴问题，给出几个投资机会和建议'
 
-        message = await openaiAssister(data['content'], ai_action)
+        message = await aiRModleAssister(data['content'], ai_action)
         return jsonify({
             'code': 200,
             'message': message.content
@@ -277,6 +269,65 @@ async def get_news():
             'message': str(e)
         }), 500
     
+
+@app.route('/api/ai_category', methods=['POST'])
+async def ai_category():
+    '''
+    This API is used to determine the category of the news.
+    Input: 
+    {
+        "content": "Text"
+    }
+    Output:
+    {
+        "category": "Text"
+    }
+    '''
+    data = await request.json
+    if data['content'] == '':
+        return jsonify({
+            'code': 400,
+            'message': 'content 不能为空'
+        }), 400
+    
+    # 从OpenAI获取行业
+    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从[{constructAiActionOfExtractCategory()}]中选择已有的，输出格式：行业名称 利空|看平|利好，其中的一个，不要输出其他内容",'')
+    return jsonify({
+        'code': 200,
+        'message': message.content
+    }), 200
+    
+@app.route('/api/ai_concepts', methods=['POST'])
+async def ai_concepts():
+    '''
+    This API is used to determine the concepts of the news.
+    Input: 
+    {
+        "content": "Text"
+    }
+    Output:
+    {
+        "concepts": ["Text1", "Text2", "Text3"]
+    }
+    '''
+    data = await request.json
+    if data['content'] == '':
+        return jsonify({
+            'code': 400,
+            'message': 'content 不能为空'
+        }), 400
+    
+    # 从OpenAI获取概念
+    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念从[{constructAiActionOfExtractConcepts()}]中选择已有的，输出格式：概念名称1 利空|看平|利好, 概念名称2 利空|看平|利好, 概念名称3 利空|看平|利好，不要输出其他内容", '')
+    return jsonify({
+        'code': 200,
+        'message': message.content
+    }), 200
+    
+    
+            
+
+            
 
 @app.route('/api/what_category', methods=['POST'])
 async def what_category():
