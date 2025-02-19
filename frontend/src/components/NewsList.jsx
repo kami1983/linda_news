@@ -30,9 +30,9 @@ const NewsList = () => {
   // 最大重试次数
   const MAX_RETRIES = 3;
 
-  useEffect(() => {
-    loadNews();
-  }, []);
+  // useEffect(() => {
+  //   loadNews();
+  // }, []);
 
   useEffect(() => {
     if (retryCount === 0) {
@@ -161,11 +161,6 @@ const NewsList = () => {
     }
     return hoursDifference + '小时前';
   };
-
-
-  
-  console.log(calculateTimeDifference("Tue, 18 Feb 2025 14:41:04 GMT"));
-  
 
   if (loading) {
     return (

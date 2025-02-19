@@ -68,6 +68,11 @@ npm run build
 npm run preview
 ```
 
+## Start unit test
+```
+python -m unittest discover -s test
+python -m unittest discover -s test -p "test_csv_manager.py"
+```
 
 ## 项目功能
 * 抓取 https://api-one-wscn.awtmt.com/apiv1/content/lives?channel=global-channel

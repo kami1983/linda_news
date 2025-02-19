@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 from libs.ai_manager import extractCategoryFromNews, extractConceptsFromNews
+from libs.csv_manager import filterCsvData
 from libs.db_conn import getDbConn
 
 CONST_MAX_FILL_COUNT = 10
@@ -31,13 +32,20 @@ async def run_ai_filler():
         for news in news_list:
             
             category = await extractCategoryFromNews(news[1])
-            print('category: ', news[0], category)
-            cursor.execute("UPDATE linda_news_category SET category = %s, status = 1 WHERE news_id = %s", (category, news[0]))
+
+            # 过滤 category
+            category_list = filterCsvData(['行业'], 1, category)
+            db_category = ','.join(category_list)
+            
+            print('>> category: ', news[0], 'original category=', category, 'record db_category=', db_category)
+            cursor.execute("UPDATE linda_news_category SET category = %s, status = 1 WHERE news_id = %s", (db_category, news[0]))
 
             # 查询 news_id 的新闻概念
             concepts = await extractConceptsFromNews(news[1])
-            print('concepts: ', news[0], concepts)
-            cursor.execute("UPDATE linda_news_concepts SET concepts = %s, status = 1 WHERE news_id = %s", (concepts, news[0]))
+            concepts_list = filterCsvData(['行业'], 2, concepts)
+            db_concepts = ','.join(concepts_list)
+            print('## concepts: ', news[0], 'original concepts=', concepts, 'record db_concepts=', db_concepts)
+            cursor.execute("UPDATE linda_news_concepts SET concepts = %s, status = 1 WHERE news_id = %s", (db_concepts, news[0]))
             conn.commit()
 
     except Exception as e:
