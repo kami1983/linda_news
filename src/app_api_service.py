@@ -18,8 +18,6 @@ load_dotenv()
 
 app = Quart(__name__)
 
-CSV_TYPE_CATEGORY = 1
-CSV_TYPE_CONCEPT = 2
 
 
 # Secret key for JWT
@@ -291,7 +289,7 @@ async def ai_category():
         }), 400
     
     # 从OpenAI获取行业
-    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从[{constructAiActionOfExtractCategory()}]中选择已有的，输出格式：行业名称 利空|看平|利好，其中的一个，不要输出其他内容",'')
+    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从系统中选择已有的，没有就不输出不要随意输出，输出格式：行业名称 利空|看平|利好，其中的一个，不要输出其他内容",f'行业列表：{constructAiActionOfExtractCategory()}')
     return jsonify({
         'code': 200,
         'message': message.content
@@ -318,7 +316,7 @@ async def ai_concepts():
         }), 400
     
     # 从OpenAI获取概念
-    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念从[{constructAiActionOfExtractConcepts()}]中选择已有的，输出格式：概念名称1 利空|看平|利好, 概念名称2 利空|看平|利好, 概念名称3 利空|看平|利好，不要输出其他内容", '')
+    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念系统中选择已有的，没有就不输出不要随意输出，输出格式：概念名称1 利空|看平|利好, 概念名称2 利空|看平|利好, 概念名称3 利空|看平|利好，不要输出其他内容", f'概念列表 {constructAiActionOfExtractConcepts()}')
     return jsonify({
         'code': 200,
         'message': message.content

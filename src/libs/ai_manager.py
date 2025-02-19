@@ -7,16 +7,13 @@ from dotenv import load_dotenv
 # 加载环境变量
 load_dotenv()
 
-
+from libs.constants import CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
 from libs.csv_manager import readCsvData
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
 AI_R_MODEL = os.getenv('AI_R_MODEL')
 AI_V_MODEL = os.getenv('AI_V_MODEL')
-
-CSV_TYPE_CATEGORY = 1
-CSV_TYPE_CONCEPT = 2
 
 async def aiRModleAssister(content, action):
     return await aiAssister(content, action, AI_R_MODEL)
@@ -35,10 +32,6 @@ async def aiAssister(content, action, model):
         ],
         stream=False
     )
-    print('--------------------------------')
-    print(response) 
-    print('--------------------------------')
-
     return response.choices[0].message
 
 
@@ -102,12 +95,16 @@ def constructAiActionOfExtractConcepts():
 
 async def extractCategoryFromNews(news_content):
     ai_action = constructAiActionOfExtractCategory()
-    message = await aiRModleAssister(news_content, ai_action)
-    category = message.content.split('</think>')[1].strip().strip('\t')
+    # message = await aiRModleAssister(news_content, ai_action)
+    # category = message.content.split('</think>')[1].strip().strip('\t')
+    message = await aiVModleAssister(f"新闻：{news_content}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从系统中选择已有的，没有就不输出不要随意输出，输出格式：行业名称，只输出一个最相关的行业，不要输出其他内容", f'行业列表 {ai_action}')
+    category = message.content
     return category
 
 async def extractConceptsFromNews(news_content):
     ai_action = constructAiActionOfExtractConcepts()
-    message = await aiRModleAssister(news_content, ai_action)
-    concepts = message.content.split('</think>')[1].strip().strip('\t')
+    # message = await aiRModleAssister(news_content, ai_action)
+    # concepts = message.content.split('</think>')[1].strip().strip('\t')
+    message = await aiVModleAssister(f"新闻：{news_content}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念系统中选择已有的，没有就不输出不要随意输出，输出格式：概念名称1,概念名称2,概念名称3，不要输出其他内容", f'概念列表 {ai_action}')
+    concepts = message.content
     return concepts
