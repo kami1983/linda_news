@@ -356,12 +356,12 @@ async def what_category():
             if result:
                 return jsonify({
                     'code': 200,
-                    'message': result[0]
+                    'message': result[0] if result[0] else '-'
                 }), 200
             else:
                 return jsonify({
                     'code': 200,
-                    'message': 'None'
+                    'message': '-'
                 }), 200
             
 

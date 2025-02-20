@@ -186,7 +186,7 @@ const NewsList = () => {
             <Card>
               <CardContent>
                 <Typography variant="h5" gutterBottom>
-                  {item[2]}
+                  {item[2]} [{item[3]}]
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                   {calculateTimeDifference(item[2])}
@@ -235,7 +235,7 @@ const NewsList = () => {
                   <Button 
                     variant="contained" 
                     color="primary" 
-                    onClick={() => handleCategoryAndConcepts(item[0], idx)}
+                    onClick={() => handleCategoryAndConcepts(item[3], idx)}
                     disabled={categoryLoading[idx]}
                     sx={{ mb: 1 }}
                   >
@@ -244,7 +244,7 @@ const NewsList = () => {
                         <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
                         分析中...
                       </Box>
-                    ) : 'AI 分类和概念分析'}
+                    ) : '刷新行业和概念分类'}
                   </Button>
                 </Box>
                 {aiAnalysis[idx] && (

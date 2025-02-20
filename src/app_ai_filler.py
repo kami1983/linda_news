@@ -88,7 +88,7 @@ def run_query_news():
             FROM linda_news AS ln
             LEFT JOIN linda_news_category AS lnc ON ln.id = lnc.news_id
             WHERE lnc.news_id IS NULL
-            ORDER BY ln.id DESC
+            ORDER BY ln.publish_time DESC
             LIMIT %s
         ''', (fill_count,))
        
