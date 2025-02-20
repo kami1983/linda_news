@@ -18,6 +18,19 @@ def getCsvFilePath(type)->str:
         return os.path.join(UPLOAD_FOLDER, 'category.csv')
     elif type == CSV_TYPE_CONCEPT:
         return os.path.join(UPLOAD_FOLDER, 'concept.csv')
+    
+def makeCsvLablePath(type, label)->str:
+    label = int(label)
+    if label <= 0:
+        raise ValueError('Invalid label parameter')
+    
+    if type not in [1, 2]:
+        raise ValueError('Invalid type parameter')
+
+    if type == CSV_TYPE_CATEGORY:
+        return os.path.join(UPLOAD_FOLDER, f'{label}.category.csv')
+    elif type == CSV_TYPE_CONCEPT:
+        return os.path.join(UPLOAD_FOLDER, f'{label}.concept.csv')
 
 def readCsvData(columns, type)->list[list[str]]:
     if type not in [1, 2]:
@@ -62,3 +75,31 @@ def filterCsvData(columns, type, filter_value: str, split_symbol='|') -> list[st
             if check_value.strip() in row:
                 filtered_data.append(check_value.strip())
     return filtered_data
+
+
+
+def modifyCsvHeaders(input_file, output_file):
+    with open(input_file, mode='r', encoding='utf-8') as infile:
+        reader = csv.reader(infile)
+        headers = next(reader)
+
+        # 修改重复的列名
+        new_headers = []
+        previous_header = None
+
+        for header in headers:
+            if header == '百分位':
+                if previous_header:
+                    new_headers.append(f'{previous_header}.百分位')
+                else:
+                    new_headers.append(header)
+            else:
+                new_headers.append(header)
+            previous_header = header
+
+        # 写入新的 CSV 文件
+        with open(output_file, mode='w', encoding='utf-8', newline='') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow(new_headers)
+            for row in reader:
+                writer.writerow(row)

@@ -51,8 +51,8 @@ const UploadCsv = () => {
             label="文件类型"
             onChange={handleTypeChange}
           >
-            <MenuItem value={1}>概念数据 CSV</MenuItem>
-            <MenuItem value={2}>行业数据 CSV</MenuItem>
+            <MenuItem value={1}>行业数据 CSV</MenuItem>
+            <MenuItem value={2}>概念数据 CSV</MenuItem>
           </Select>
         </FormControl>
       </Box>

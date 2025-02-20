@@ -9,9 +9,12 @@ import aiomysql
 import os
 from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister
 from config import get_db_pool
-from libs.csv_manager import getCsvFilePath, readCsvData  
+from libs.constants import CONST_DB_PUBLIC_LABEL_CSV_LABEL_NAME, CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
+from libs.csv_manager import getCsvFilePath, makeCsvLablePath, modifyCsvHeaders, readCsvData  
 from libs.auth import generate_token, decode_token, login_required
 from dotenv import load_dotenv
+
+from libs.db_conn import getScvLabel, updatePublicLabel
 
 # 加载环境变量
 load_dotenv()
@@ -283,11 +286,6 @@ async def ai_concepts():
         'message': message.content
     }), 200
     
-    
-            
-
-            
-
 @app.route('/api/what_category', methods=['POST'])
 async def what_category():
     '''
@@ -366,6 +364,41 @@ async def what_concepts():
                     'message': []
                 }), 200
             
+@app.route('/api/get_csv_label', methods=['GET'])
+async def get_csv_label():  
+    '''
+    This API is used to get the CSV label.
+    CSV label is used to determine the CSV file version.
+    '''
+    return jsonify({
+        'code': 200,
+        'message': getScvLabel()
+    }), 200
+
+@app.route('/api/rebuild_csv_heads', methods=['GET'])
+@login_required
+async def rebuild_csv_heads(user_data):
+    '''
+    This API is used to reconstruct the CSV file.
+    '''
+    csv_label = request.args.get('label', 0, type=int)
+    system_csv_label = getScvLabel()
+
+    if system_csv_label >= csv_label:
+        return jsonify({
+            'code': 400,
+            'message': 'CSV label is not greater than the system CSV label'
+        }), 400
+
+    # modifyCsvHeaders
+    modifyCsvHeaders(getCsvFilePath(CSV_TYPE_CATEGORY), makeCsvLablePath(CSV_TYPE_CATEGORY, csv_label))
+    modifyCsvHeaders(getCsvFilePath(CSV_TYPE_CONCEPT), makeCsvLablePath(CSV_TYPE_CONCEPT, csv_label))
+    updatePublicLabel(CONST_DB_PUBLIC_LABEL_CSV_LABEL_NAME, csv_label)
+
+    return jsonify({
+        'code': 200,
+        'message': 'CSV 文件头重建成功'
+    }), 200
 
 @app.route('/api/upload_csv', methods=['POST'])
 @login_required
@@ -415,11 +448,11 @@ async def read_csv_data():
 
 @app.errorhandler(404)
 async def not_found(error):
-    return jsonify({'code': 404, 'message': '接口不存在'}), 404
+    return jsonify({'code': 404, 'message': 'Interface not found'}), 404
 
 @app.errorhandler(405)
 async def method_not_allowed(error):
-    return jsonify({'code': 405, 'message': '请求方法不允许'}), 405
+    return jsonify({'code': 405, 'message': 'Request method not allowed'}), 405
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
