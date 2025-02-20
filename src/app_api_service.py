@@ -10,7 +10,7 @@ import os
 from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister
 from config import get_db_pool
 from libs.csv_manager import getCsvFilePath, readCsvData  
-
+from libs.auth import generate_token, decode_token, login_required
 from dotenv import load_dotenv
 
 # 加载环境变量
@@ -18,51 +18,12 @@ load_dotenv()
 
 app = Quart(__name__)
 
-
-
-# Secret key for JWT
-SECRET_KEY = os.getenv('ADMIN_SESSION_SECRET', '')
+# Mock database for user credentials
 admin_user = os.getenv('ADMIN_USER', 'admin')
 admin_password = os.getenv('ADMIN_PASSWORD', '123456')
-
-# Mock database for user credentials
 USERS = {
     admin_user: admin_password
 }
-
-# Generate JWT token
-def generate_token(username):
-    payload = {
-        "username": username,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),  # 使用时区感知的 UTC 时间
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-
-# Decode and validate JWT token
-def decode_token(token):
-    try:
-        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return decoded
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
-
-def login_required(f):
-    @wraps(f)
-    async def decorated_function(*args, **kwargs):
-        token = request.cookies.get("auth_token")
-        if not token:
-            return jsonify({"error": "Unauthorized"}), 401
-
-        user_data = decode_token(token)
-        if not user_data:
-            return jsonify({"error": "Invalid or expired token"}), 401
-
-        # 将解码后的用户数据传递给实际的视图函数
-        kwargs['user_data'] = user_data
-        return await f(*args, **kwargs)
-    return decorated_function
 
 # Login endpoint
 @app.route('/api/login', methods=['POST'])
@@ -356,12 +317,12 @@ async def what_category():
             if result:
                 return jsonify({
                     'code': 200,
-                    'message': result[0]
+                    'message': result[0] if result[0] else '-'
                 }), 200
             else:
                 return jsonify({
                     'code': 200,
-                    'message': 'None'
+                    'message': '-'
                 }), 200
             
 

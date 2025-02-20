@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Typography, Container, Box, Paper } from '@mui/material';
 import axios from 'axios';
 import { makeStyles } from '@mui/styles';
@@ -27,10 +27,26 @@ const useStyles = makeStyles({
 
 const Dashboard = () => {
   const classes = useStyles();
+  const [loggedInUser, setLoggedInUser] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [loggedInUser, setLoggedInUser] = useState(null);
+
+  useEffect(() => {
+    // 检查用户是否已登录
+    const checkLoginStatus = async () => {
+      try {
+        const response = await axios.get('/api/current_user');
+        if (response.data.status) {
+          setLoggedInUser(response.data.data.username);
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
 
   const handleLogin = async () => {
     try {
@@ -49,8 +65,8 @@ const Dashboard = () => {
     try {
       await axios.post('/api/logout');
       setLoggedInUser(null);
-    } catch (err) {
-      console.error('Logout failed:', err);
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   };
 
