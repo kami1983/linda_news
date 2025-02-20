@@ -2,19 +2,21 @@ import asyncio
 from datetime import datetime
 import os
 import time
-import subprocess
-import sys
 
 from libs.ai_manager import extractCategoryFromNews, extractConceptsFromNews
+from libs.constants import CONST_MAX_FILL_COUNT
 from libs.csv_manager import filterCsvData
-from libs.db_conn import getDbConn
-
-CONST_MAX_FILL_COUNT = 10
+from libs.db_conn import getDbConn, getScvLabel
 
 async def run_ai_filler():
     '''
     填充新闻分类和概念
     '''
+    csv_label = getScvLabel()
+    if csv_label == 0:
+        print('CSV label is 0, skip fill, you need to rebuild the CSV file first if you want to fill the news category and concepts')
+        return
+
     conn = getDbConn()
     cursor = conn.cursor()
 
@@ -38,14 +40,14 @@ async def run_ai_filler():
             db_category = ','.join(category_list)
             
             print('>> category: ', news[0], 'original category=', category, 'record db_category=', db_category)
-            cursor.execute("UPDATE linda_news_category SET category = %s, status = 1 WHERE news_id = %s", (db_category, news[0]))
+            cursor.execute("UPDATE linda_news_category SET category = %s, status = 1, csv_label = %s WHERE news_id = %s", (db_category, csv_label, news[0]))
 
             # 查询 news_id 的新闻概念
             concepts = await extractConceptsFromNews(news[1])
             concepts_list = filterCsvData(['行业'], 2, concepts)
             db_concepts = ','.join(concepts_list)
             print('## concepts: ', news[0], 'original concepts=', concepts, 'record db_concepts=', db_concepts)
-            cursor.execute("UPDATE linda_news_concepts SET concepts = %s, status = 1 WHERE news_id = %s", (db_concepts, news[0]))
+            cursor.execute("UPDATE linda_news_concepts SET concepts = %s, status = 1, csv_label = %s WHERE news_id = %s", (db_concepts, csv_label, news[0]))
             conn.commit()
 
     except Exception as e:
