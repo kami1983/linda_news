@@ -1,29 +1,49 @@
 
 import os
 from openai import OpenAI
-
 from dotenv import load_dotenv
-
-# 加载环境变量
-load_dotenv()
-
+from libs.redis_conn import getConfBeatNum
 from libs.constants import CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
 from libs.csv_manager import readCsvData
+
+load_dotenv()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_REQUEST_URI = os.getenv('OPENAI_REQUEST_URI')
 AI_R_MODEL = os.getenv('AI_R_MODEL')
 AI_V_MODEL = os.getenv('AI_V_MODEL')
 
+def getConfigValueWithConfigBeatNum(config_value: str)->str:
+    config_beat_num = getConfBeatNum()
+    value_list = config_value.split('|')
+    return (value_list[config_beat_num % len(value_list)]).strip()
+
+def getAiApiKey():
+    return getConfigValueWithConfigBeatNum(OPENAI_API_KEY)
+
+def getAiRequestUri():
+    return getConfigValueWithConfigBeatNum(OPENAI_REQUEST_URI)
+
+def getAiRModelName():
+    return getConfigValueWithConfigBeatNum(AI_R_MODEL)
+
+def getAiVModelName():
+    return getConfigValueWithConfigBeatNum(AI_V_MODEL)
+
 async def aiRModleAssister(content, action):
-    return await aiAssister(content, action, AI_R_MODEL)
+    return await aiAssister(content, action, getAiRModelName())
     
 async def aiVModleAssister(content, action):
-    return await aiAssister(content, action, AI_V_MODEL)
+    return await aiAssister(content, action, getAiVModelName())
+
+def createAiClient() -> OpenAI:
+    return OpenAI(api_key=getAiApiKey(), base_url=getAiRequestUri())
+
+
 
 async def aiAssister(content, action, model):
     print(f'AI_MODEL: {model}')
-    client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_REQUEST_URI)
+    client = createAiClient()
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -41,7 +61,7 @@ class ResponseObject:
         self.reasoning_content = reasoning_content
 
 async def streamAiAssister(input, action, model):
-    client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_REQUEST_URI)
+    client = createAiClient()
     response = client.chat.completions.create(
         model=model,
         messages=[

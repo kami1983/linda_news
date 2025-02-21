@@ -3,13 +3,11 @@ import time
 import subprocess
 import sys
 
+from dotenv import load_dotenv
+load_dotenv()
+
 def run_spider():
-    # 获取当前脚本的路径
-    current_file = os.path.abspath(__file__)
-    spider_script = os.path.join(os.path.dirname(current_file), 'run_spider.py')
-    
-    # 使用子进程运行爬虫
-    subprocess.run([sys.executable, spider_script], check=True)
+    subprocess.run([sys.executable, '-m', 'src.run_spider'], check=True)
 
 def main():
     while True:

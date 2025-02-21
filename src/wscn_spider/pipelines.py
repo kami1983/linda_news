@@ -4,6 +4,7 @@ from datetime import datetime
 from libs.db_conn import getDbConn
 
 
+
 class MySQLPipeline:
     def __init__(self):
         self.conn = None

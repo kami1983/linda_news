@@ -11,6 +11,7 @@ import {
   Box 
 } from '@mui/material';
 import axios from 'axios';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const NewsList = () => {
   const [news, setNews] = useState([]);
@@ -103,6 +104,7 @@ const NewsList = () => {
 
   const handleCategoryAndConcepts = async (news_id, idx) => {
     try {
+      setCategoryLoading(prev => ({ ...prev, [idx]: true }));
       const res_category = await axios.post('/api/what_category', { news_id });
       setCategoryData(prev => ({
         ...prev,
@@ -116,6 +118,8 @@ const NewsList = () => {
       }));
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setCategoryLoading(prev => ({ ...prev, [idx]: false }));
     }
   };
 
@@ -145,9 +149,6 @@ const NewsList = () => {
   const calculateTimeDifference = (publishedTime) => {
     const publishedDate = new Date(publishedTime);
     const currentDate = new Date();
-    console.log('publishedTime:', publishedTime);
-    console.log('publishedDate:', publishedDate);
-    console.log('currentDate:', currentDate);
 
     // 将时间转换为 UTC 时间戳
     const timezoneOffset = 8 * 60 * 60 * 1000; // 8小时的毫秒数
@@ -244,7 +245,11 @@ const NewsList = () => {
                         <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
                         分析中...
                       </Box>
-                    ) : '刷新行业和概念分类'}
+                    ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <RefreshIcon sx={{ mr: 1 }} />
+                      </Box>
+                    )}
                   </Button>
                 </Box>
                 {aiAnalysis[idx] && (

@@ -1,7 +1,7 @@
 import os
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-from wscn_spider.spiders.news_spider import NewsSpider as WscnNewsSpider
+from src.wscn_spider.spiders.news_spider import NewsSpider as WscnNewsSpider
 
 def run_spider():
     # 设置项目根目录

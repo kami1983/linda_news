@@ -2,7 +2,7 @@ import os
 import csv
 
 from dotenv import load_dotenv
-from .constants import CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
+from libs.constants import CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
 
 # 加载环境变量
 load_dotenv()
