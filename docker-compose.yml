@@ -17,6 +17,14 @@ services:
     volumes:
       - ./dbdata/mysql:/var/lib/mysql
       - ./dbdata/struct:/docker-entrypoint-initdb.d
+  linda_news_redis:
+    image: redis:latest
+    container_name: redis-container
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - ./dbdata/redis:/data
 
 
 # Login try to with command: docker exec -it linda-trade-mysql-container mysql -u root -p

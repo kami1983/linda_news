@@ -8,7 +8,7 @@ import asyncio
 import aiomysql
 import os
 from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister
-from config import get_db_pool
+from .config import get_db_pool
 from libs.constants import CONST_DB_PUBLIC_LABEL_CSV_LABEL_NAME, CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
 from libs.csv_manager import getCsvFilePath, makeCsvLablePath, modifyCsvHeaders, readCsvData  
 from libs.auth import generate_token, decode_token, login_required

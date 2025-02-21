@@ -2,11 +2,11 @@ import unittest
 from unittest.mock import patch
 
 # 假设 filterCsvData 在 csv_manager 模块中
-from src.libs.csv_manager import filterCsvData
+from libs.csv_manager import filterCsvData
 
 class TestFilterCsvData(unittest.TestCase):
 
-    @patch('src.libs.csv_manager.readCsvData')
+    @patch('libs.csv_manager.readCsvData')
     def test_filter_with_valid_type_and_value(self, mock_read_csv_data):
         # 模拟 readCsvData 返回的数据
         mock_read_csv_data.return_value = [
@@ -18,7 +18,7 @@ class TestFilterCsvData(unittest.TestCase):
         expected_result = ['apple', 'banana']
         self.assertEqual(result, expected_result)
 
-    @patch('src.libs.csv_manager.readCsvData')
+    @patch('libs.csv_manager.readCsvData')
     def test_filter_with_invalid_type(self, mock_read_csv_data):
         mock_read_csv_data.return_value = [
             ['apple', 'banana', 'cherry']
@@ -26,7 +26,7 @@ class TestFilterCsvData(unittest.TestCase):
         with self.assertRaises(ValueError):
             filterCsvData(['fruit'], 3, 'apple')
     
-    @patch('src.libs.csv_manager.readCsvData')
+    @patch('libs.csv_manager.readCsvData')
     def test_filter_with_empty_filter_value(self, mock_read_csv_data):
         mock_read_csv_data.return_value = [
             ['apple', 'banana', 'cherry']

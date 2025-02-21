@@ -1,7 +1,7 @@
 import unittest
 import os
 import csv
-from src.libs.csv_manager import modifyCsvHeaders
+from libs.csv_manager import modifyCsvHeaders
 
 class TestModifyCsvHeaders(unittest.TestCase):
 
