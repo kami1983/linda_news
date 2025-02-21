@@ -7,6 +7,7 @@ from libs.ai_manager import extractCategoryFromNews, extractConceptsFromNews
 from libs.constants import CONST_MAX_FILL_COUNT
 from libs.csv_manager import filterCsvData
 from libs.db_conn import getDbConn, getScvLabel
+from libs.redis_conn import getConfBeatNum, getRedisConn, setConfBeatNum
 
 async def run_ai_filler():
     '''
@@ -114,6 +115,11 @@ def run_query_news():
     finally:
         conn.close()
 
+def update_beat_num():
+    '''
+    更新 beat_num
+    '''
+    setConfBeatNum(getConfBeatNum() + 1)
 
 async def main():
     while True:
@@ -123,6 +129,7 @@ async def main():
             run_query_news()
             # 运行新闻填充的AI识别内容
             await run_ai_filler()
+            update_beat_num()
         except Exception as e:
             print(f"Filler error: {e}")
         
