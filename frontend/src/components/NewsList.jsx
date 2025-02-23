@@ -27,6 +27,7 @@ const NewsList = () => {
   const [start, setStart] = useState(0);
   const size = 10; // 每次加载的条数
   const [loadingMore, setLoadingMore] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   // 最大重试次数
   const MAX_RETRIES = 3;
@@ -123,6 +124,23 @@ const NewsList = () => {
     }
   };
 
+  const strongAndWeekColor = (percentageStr) => {
+    // 从字符串中提取数值部分
+    const percentage = parseFloat(percentageStr);
+
+    // 验证提取的数值是否为有效百分比
+    if (isNaN(percentage) || percentage < 0 || percentage > 99) {
+        throw new Error(`Invalid percentage: ${percentageStr}. Must be between 0% and 99%.`);
+    }
+
+    // 计算红色和绿色分量
+    const red = Math.round((percentage / 99) * 255);
+    const green = Math.round(((99 - percentage) / 99) * 255);
+
+    // 返回 RGB 颜色值
+    return `rgb(${red}, ${green}, 0)`;
+  };
+
   const observer = useRef();
 
   useEffect(() => {
@@ -176,6 +194,22 @@ const NewsList = () => {
       <Typography variant="h4" sx={{ my: 4 }}>
         投资分析参考
       </Typography>
+      <Typography variant="h6" sx={{ my: 4 }}>
+        <div>颜色图例 0~99% 越红估值越高</div>
+        {Array.from({ length: 20 }, (_, i) => i * 5).map((i) => (
+          <div
+            key={i}
+            style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              backgroundColor: strongAndWeekColor(i.toString()),
+              marginRight: '2px'
+            }}
+            title={`${i}%`}
+          />
+        ))}
+      </Typography>
       {retryCount >= MAX_RETRIES && (
         <Button onClick={resetRetryCount} variant="contained" color="primary">
           Retry fetch news
@@ -196,12 +230,89 @@ const NewsList = () => {
                   {item[0]}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  {categoryData[idx] ? categoryData[idx] : 'Loading category...'}
+                  {categoryData[idx] && categoryData[idx][0] ? (
+                    <>
+                      {categoryData[idx][0]}
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          backgroundColor: strongAndWeekColor(categoryData[idx][1][1]),
+                          marginLeft: '5px',
+                          position: 'relative'
+                        }}
+                        onMouseEnter={() => setHoveredIndex(idx)}
+                        onMouseLeave={() => setHoveredIndex(null)}
+                      >
+                        {hoveredIndex === idx && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '-20px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              backgroundColor: 'black',
+                              color: 'white',
+                              padding: '5px',
+                              borderRadius: '3px',
+                              fontSize: '12px',
+                              whiteSpace: 'nowrap',
+                              zIndex: 1
+                            }}
+                          >
+                             {categoryData[idx][0]}, PB{categoryData[idx][1][0]} # {categoryData[idx][1][1]}
+                          </div>
+                        )}
+                      </span>
+                    </>
+                  ) : '-'}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  {conceptsData[idx] && Array.isArray(conceptsData[idx])
-                    ? conceptsData[idx].join(', ')
+                  <i>{conceptsData[idx] && Array.isArray(conceptsData[idx])
+                    ? <>
+                      {conceptsData[idx].map((item, idx) => (
+                        <div key={idx}>
+                          {item[0]}
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              width: '10px',
+                              height: '10px',
+                              borderRadius: '50%',
+                              backgroundColor: strongAndWeekColor(item[1][1]),
+                              marginLeft: '5px',
+                              position: 'relative'
+                            }}
+                            onMouseEnter={() => setHoveredIndex(idx)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                          >
+                            {hoveredIndex === idx && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: '-20px',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  backgroundColor: 'black',
+                                  color: 'white',
+                                  padding: '5px',
+                                  borderRadius: '3px',
+                                  fontSize: '12px',
+                                  whiteSpace: 'nowrap',
+                                  zIndex: 1
+                                }}
+                              >
+                                {item[0]}, PB{item[1][0]} # {item[1][1]}
+                              </div>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </>
                     : 'Loading concepts...'}
+                  </i>
                 </Typography>
                 <Box sx={{ mt: 2 }}>
                   <Button 
@@ -243,7 +354,7 @@ const NewsList = () => {
                     {categoryLoading[idx] ? (
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
-                        分析中...
+                        加载中...
                       </Box>
                     ) : (
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
