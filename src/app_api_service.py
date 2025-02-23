@@ -10,7 +10,7 @@ import os
 from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister
 from .config import get_db_pool
 from libs.constants import CONST_DB_PUBLIC_LABEL_CSV_LABEL_NAME, CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
-from libs.csv_manager import getCsvFilePath, makeCsvLablePath, modifyCsvHeaders, readCsvData  
+from libs.csv_manager import getCsvFilePath, getCsvValueByColname, makeCsvLablePath, modifyCsvHeaders, readCsvData  
 from libs.auth import generate_token, decode_token, login_required
 from dotenv import load_dotenv
 
@@ -310,23 +310,26 @@ async def what_category():
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("SELECT category FROM linda_news_category WHERE news_id = %s", (data['news_id'],))
+            await cur.execute("SELECT category, csv_label FROM linda_news_category WHERE news_id = %s", (data['news_id'],))
             result = await cur.fetchone()
-            if result:
+            category = result[0] if result else '-'
+            csv_label = int(result[1]) if result else 0
+            if csv_label > 0:
+                pb_values = getCsvValueByColname('行业', category, ['PB.加权','PB.加权.百分位','股息','ROE'], CSV_TYPE_CATEGORY, csv_label)
+            else:
+                pb_values = []
+
+            if result and result[0] != '':
                 return jsonify({
                     'code': 200,
-                    'message': result[0] if result[0] else '-'
+                    'message': [category, pb_values]
                 }), 200
             else:
                 return jsonify({
                     'code': 200,
-                    'message': '-'
+                    'message': []
                 }), 200
             
-
-            
-
-    
 @app.route('/api/what_concepts', methods=['POST'])
 async def what_concepts():
     '''
@@ -351,12 +354,21 @@ async def what_concepts():
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
-            await cur.execute("SELECT concepts FROM linda_news_concepts WHERE news_id = %s", (data['news_id'],))
+            await cur.execute("SELECT concepts, csv_label FROM linda_news_concepts WHERE news_id = %s", (data['news_id'],))
             result = await cur.fetchone()
-            if result:
+            print('DEBUG: result', result)
+            concepts = result[0].split(',') if result else []
+            csv_label = int(result[1]) if result else 0
+            pb_values = []
+            if csv_label > 0:
+                for concept in concepts:
+                    _pb_values = getCsvValueByColname('行业', concept, ['PB.加权','PB.加权.百分位','股息','ROE'], CSV_TYPE_CONCEPT, csv_label)
+                    pb_values.append((concept, _pb_values))
+
+            if result and result[0] != '':
                 return jsonify({
                     'code': 200,
-                    'message': result[0].split(',')
+                    'message': pb_values
                 }), 200
             else:
                 return jsonify({
