@@ -7,7 +7,7 @@ import jwt
 import asyncio
 import aiomysql
 import os
-from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister
+from libs.ai_manager import constructAiActionOfExtractCategory, constructAiActionOfExtractConcepts, aiVModleAssister, aiRModleAssister, extractCategoryFromNews, extractConceptsFromNews
 from .config import get_db_pool
 from libs.constants import CONST_DB_PUBLIC_LABEL_CSV_LABEL_NAME, CSV_TYPE_CATEGORY, CSV_TYPE_CONCEPT
 from libs.csv_manager import getCsvFilePath, getCsvValueByColname, makeCsvLablePath, modifyCsvHeaders, readCsvData  
@@ -114,7 +114,7 @@ async def ai_importance():
 
         return jsonify({
             'code': 200,
-            'message': message.content
+            'message': message
         })
     except Exception as e:
         return jsonify({
@@ -139,7 +139,7 @@ async def ai_gemma2_9b_importance():
 
         return jsonify({
             'code': 200,
-            'message': int(message.content)
+            'message': int(message)
         })
     except Exception as e:
         return jsonify({
@@ -179,7 +179,7 @@ async def ai():
         message = await aiRModleAssister(data['content'], ai_action)
         return jsonify({
             'code': 200,
-            'message': message.content
+            'message': message
         })
     except Exception as e:
         return jsonify({
@@ -253,10 +253,12 @@ async def ai_category():
         }), 400
     
     # 从OpenAI获取行业
-    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从系统中选择已有的，没有就不输出不要随意输出，输出格式：行业名称 利空|看平|利好，其中的一个，不要输出其他内容",f'行业列表：{constructAiActionOfExtractCategory()}')
+    # message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从系统中选择已有的，没有就不输出不要随意输出，输出格式：行业名称 利空|看平|利好，其中的一个，不要输出其他内容",f'行业列表：{constructAiActionOfExtractCategory()}')
+    message = await extractCategoryFromNews(data['content'])
+    print('DEBUG: message', message)
     return jsonify({
         'code': 200,
-        'message': message.content
+        'message': message
     }), 200
     
 @app.route('/api/ai_concepts', methods=['POST'])
@@ -280,10 +282,12 @@ async def ai_concepts():
         }), 400
     
     # 从OpenAI获取概念
-    message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念系统中选择已有的，没有就不输出不要随意输出，输出格式：概念名称1 利空|看平|利好, 概念名称2 利空|看平|利好, 概念名称3 利空|看平|利好，不要输出其他内容", f'概念列表 {constructAiActionOfExtractConcepts()}')
+    # message = await aiVModleAssister(f"新闻：{data['content']}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念系统中选择已有的，没有就不输出不要随意输出，输出格式：概念名称1 利空|看平|利好, 概念名称2 利空|看平|利好, 概念名称3 利空|看平|利好，不要输出其他内容", f'概念列表 {constructAiActionOfExtractConcepts()}')
+    message = await extractConceptsFromNews(data['content'])
+    print('DEBUG: message', message)
     return jsonify({
         'code': 200,
-        'message': message.content
+        'message': message
     }), 200
     
 @app.route('/api/what_category', methods=['POST'])
@@ -356,7 +360,6 @@ async def what_concepts():
         async with conn.cursor() as cur:
             await cur.execute("SELECT concepts, csv_label FROM linda_news_concepts WHERE news_id = %s", (data['news_id'],))
             result = await cur.fetchone()
-            print('DEBUG: result', result)
             concepts = result[0].split(',') if result else []
             csv_label = int(result[1]) if result else 0
             pb_values = []

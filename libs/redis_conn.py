@@ -18,4 +18,4 @@ def setConfBeatNum(value: int):
 def getConfBeatNum()->int:
     client = getRedisConn()
     value = client.get('conf_beat_num')
-    return int(value)
+    return int(value) if value else 0
