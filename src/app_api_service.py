@@ -14,7 +14,7 @@ from libs.csv_manager import getCsvFilePath, getCsvValueByColname, makeCsvLableP
 from libs.auth import generate_token, decode_token, login_required
 from dotenv import load_dotenv
 
-from libs.db_conn import getScvLabel, updatePublicLabel
+from libs.db_conn import addCsvRecord, getScvLabel, updatePublicLabel
 
 # 加载环境变量
 load_dotenv()
@@ -402,17 +402,18 @@ async def rebuild_csv_heads(user_data):
     if system_csv_label >= csv_label:
         return jsonify({
             'code': 400,
-            'message': 'CSV label is not greater than the system CSV label'
+            'message': f'CSV label is not greater than the system [{system_csv_label}] CSV label [{csv_label}]'
         }), 400
 
     # modifyCsvHeaders
     modifyCsvHeaders(getCsvFilePath(CSV_TYPE_CATEGORY), makeCsvLablePath(CSV_TYPE_CATEGORY, csv_label))
     modifyCsvHeaders(getCsvFilePath(CSV_TYPE_CONCEPT), makeCsvLablePath(CSV_TYPE_CONCEPT, csv_label))
     updatePublicLabel(CONST_DB_PUBLIC_LABEL_CSV_LABEL_NAME, csv_label)
+    addCsvRecord(csv_label, datetime.now().strftime('%Y-%m-%d'))
 
     return jsonify({
         'code': 200,
-        'message': 'CSV 文件头重建成功'
+        'message': f'CSV 文件头重建成功，当前版本号：{csv_label}'
     }), 200
 
 @app.route('/api/upload_csv', methods=['POST'])

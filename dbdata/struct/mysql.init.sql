@@ -47,5 +47,12 @@ CREATE TABLE `linda_public_label` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
-
-
+-- 记录CSV文件的更新日期，后面用于支持显示估值变化情况
+CREATE TABLE `linda_csv_record` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `csv_label` int NOT NULL,
+  `update_date` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `scv_label` (`csv_label`),
+  KEY `update_date` (`update_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

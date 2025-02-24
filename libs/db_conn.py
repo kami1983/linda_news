@@ -50,3 +50,20 @@ def getScvLabel()->int:
         return int(result)
     else:
         return 0
+
+
+def addCsvRecord(csv_label, update_date):
+    conn = getDbConn()
+    cursor = conn.cursor()
+    try:
+        # 检查是否存在相同的记录 csv_label 是否存在存在更新否则插入
+        cursor.execute("""
+            INSERT INTO linda_csv_record (csv_label, update_date) 
+            VALUES (%s, %s) 
+            ON DUPLICATE KEY UPDATE update_date = VALUES(update_date)
+        """, (csv_label, update_date))
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding CSV record: {e}")
+    finally:
+        cursor.close()
