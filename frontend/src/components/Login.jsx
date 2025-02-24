@@ -25,14 +25,14 @@ const useStyles = makeStyles({
   },
 });
 
-const Login = () => {
+const Login = ({ onLogin, onLogout }) => {
   const classes = useStyles();
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
-  useEffect(( ) => {
+  useEffect(() => {
     // 检查用户是否已登录
     const checkLoginStatus = async () => {
       try {
@@ -54,6 +54,9 @@ const Login = () => {
       if (response.status === 200) {
         setError('');
         setLoggedInUser(username);
+        if (onLogin) {
+          onLogin(); // Call the onLogin callback if provided
+        }
       }
     } catch (err) {
       console.log('err:', err);
@@ -65,6 +68,9 @@ const Login = () => {
     try {
       await axios.post('/api/logout');
       setLoggedInUser(null);
+      if (onLogout) {
+        onLogout(); // Call the onLogout callback if provided
+      }
     } catch (error) {
       console.error('Logout failed:', error);
     }
