@@ -1,129 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { TextField, Button, Typography, Container, Box, Paper } from '@mui/material';
-import axios from 'axios';
-import { makeStyles } from '@mui/styles';
-
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
-  },
-  paper: {
-    padding: '20px',
-    maxWidth: '400px',
-    width: '100%',
-    textAlign: 'center',
-  },
-  title: {
-    marginBottom: '20px',
-  },
-  button: {
-    marginTop: '20px',
-  },
-});
+import React, { useState } from 'react';
+import { Container, Typography, Box, Grid, Paper, List, ListItem, ListItemText, ListItemIcon, AppBar, Toolbar, IconButton } from '@mui/material';
+import { Home as HomeIcon, Dashboard as DashboardIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import Login from './Login';
 
 const Dashboard = () => {
-  const classes = useStyles();
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    // 检查用户是否已登录
-    const checkLoginStatus = async () => {
-      try {
-        const response = await axios.get('/api/current_user');
-        if (response.data.status) {
-          setLoggedInUser(response.data.data.username);
-        }
-      } catch (error) {
-        console.error('Error checking login status:', error);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
-
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post('/api/login', { username, password });
-      if (response.status === 200) {
-        setError('');
-        setLoggedInUser(username);
-      }
-    } catch (err) {
-      console.log('err:', err);
-      setError('Invalid username or password');
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await axios.post('/api/logout');
-      setLoggedInUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const handleLogin = () => {
+    setIsAuthenticated(true);
   };
 
   return (
-    <Box className={classes.root}>
-      <Paper className={classes.paper} elevation={3}>
-        {loggedInUser ? (
-          <div>
-            <Typography variant="h5" className={classes.title}>
-              Welcome, {loggedInUser}!
-            </Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              fullWidth
-              onClick={handleLogout}
-              className={classes.button}
-            >
-              Logout
-            </Button>
-          </div>
-        ) : (
-          <div>
-            <Typography variant="h4" className={classes.title}>
-              Login
-            </Typography>
-            <TextField
-              label="Username"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {error && <Typography color="error">{error}</Typography>}
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={handleLogin}
-              className={classes.button}
-            >
-              Login
-            </Button>
-          </div>
-        )}
-      </Paper>
-    </Box>
+    <Container maxWidth="lg" sx={{ p: 0 }}>
+      {!isAuthenticated ? (
+        <Login onLogin={handleLogin} />
+      ) : (
+        <>
+          <AppBar position="static">
+            <Toolbar>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Dashboard
+              </Typography>
+              <IconButton color="inherit">
+                <SettingsIcon />
+              </IconButton>
+            </Toolbar>
+          </AppBar>
+          <Grid container spacing={3} sx={{ mt: 0 }}>
+            <Grid item xs={3}>
+              <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
+                <List component="nav">
+                  <ListItem button>
+                    <ListItemIcon>
+                      <HomeIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Home" />
+                  </ListItem>
+                  <ListItem button>
+                    <ListItemIcon>
+                      <DashboardIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Dashboard" />
+                  </ListItem>
+                  {/* Add more menu items here as needed */}
+                </List>
+              </Paper>
+            </Grid>
+            <Grid item xs={9}>
+              <Paper elevation={3} sx={{ p: 3 }}>
+                <Typography variant="h5" sx={{ mb: 2 }}>
+                  Welcome to the Dashboard
+                </Typography>
+                <Box sx={{ mb: 2 }}>
+                  {/* Add charts, tables, or other content here */}
+                  <Typography variant="body1">
+                    Here you can find insights and analytics about your data.
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </>
+      )}
+    </Container>
   );
 };
 
