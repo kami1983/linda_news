@@ -1,5 +1,6 @@
 
 import os
+import json
 from openai import OpenAI
 from dotenv import load_dotenv
 from libs.redis_conn import getConfBeatNum
@@ -52,7 +53,16 @@ async def aiAssister(content, action, model):
         ],
         stream=False
     )
-    return response.choices[0].message
+
+    res =  json.loads(response.model_dump_json()) if getAiRequestUri() == 'https://dashscope.aliyuncs.com/compatible-mode/v1' else response
+    
+    # print('DEBUG: -----')
+    # print('DEBUG: choices', res['choices'][0]['message']['content'])
+    # print('DEBUG: -----')
+
+    if getAiRequestUri() == 'https://dashscope.aliyuncs.com/compatible-mode/v1':
+        return res['choices'][0]['message']['content']
+    return res.choices[0].message.content
 
 
 class ResponseObject:
@@ -118,7 +128,7 @@ async def extractCategoryFromNews(news_content):
     # message = await aiRModleAssister(news_content, ai_action)
     # category = message.content.split('</think>')[1].strip().strip('\t')
     message = await aiVModleAssister(f"新闻：{news_content}\n\n要求：根据新闻内容，判断新闻与那个行业最相关，行业从系统中选择已有的，没有就不输出不要随意输出，输出格式：行业名称，只输出一个最相关的行业，不要输出其他内容", f'行业列表 {ai_action}')
-    category = message.content
+    category = message
     return category
 
 async def extractConceptsFromNews(news_content):
@@ -126,5 +136,5 @@ async def extractConceptsFromNews(news_content):
     # message = await aiRModleAssister(news_content, ai_action)
     # concepts = message.content.split('</think>')[1].strip().strip('\t')
     message = await aiVModleAssister(f"新闻：{news_content}\n\n要求：根据新闻内容，获取与新闻最相关的3个概念，概念系统中选择已有的，没有就不输出不要随意输出，输出格式：概念名称1,概念名称2,概念名称3，不要输出其他内容", f'概念列表 {ai_action}')
-    concepts = message.content
+    concepts = message
     return concepts
