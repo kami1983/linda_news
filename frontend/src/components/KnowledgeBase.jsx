@@ -1,8 +1,8 @@
 // src/components/KnowledgeBase.jsx
 import React, { useState } from 'react';
 import { Container, Typography, Box, Grid, Paper, List, ListItem, ListItemText, ListItemIcon } from '@mui/material';
-import { UploadFile as UploadFileIcon } from '@mui/icons-material';
-import UploadCsv from './UploadCsv';
+import { DateRange as DateRangeIcon } from '@mui/icons-material';
+import ValuationHistory from './ValuationHistory';
 
 const KnowledgeBase = () => {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -22,18 +22,18 @@ const KnowledgeBase = () => {
             <List component="nav">
               <ListItem button selected={selectedTab === 0} onClick={() => setSelectedTab(0)}>
                 <ListItemIcon>
-                  <UploadFileIcon color={selectedTab === 0 ? 'primary' : 'inherit'} />
+                  <DateRangeIcon color={selectedTab === 0 ? 'primary' : 'inherit'} />
                 </ListItemIcon>
-                <ListItemText primary="Upload CSV" />
+                <ListItemText primary="Valuation History" />
               </ListItem>
-              
+
               {/* Add more menu items here as needed */}
             </List>
           </Paper>
         </Grid>
         <Grid item xs={9}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            {selectedTab === 0 && <UploadCsv />}
+            {selectedTab === 0 && <ValuationHistory />}
             {/* Render other components based on the selected tab */}
           </Paper>
         </Grid>

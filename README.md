@@ -1,27 +1,10 @@
-## 这是一个基于 Python 的爬虫项目
+## Analyze news through AI and generate a knowledge base.
 
 ## Install python 3.9
 * conda env list
 * conda create --name linda-news python=3.9
 * conda activate linda-news
 
-### 项目结构
-
-```bash
-.
-├── README.md
-├── requirements.txt
-├── src
-│   ├── __init__.py
-│   ├── main.py
-│   ├── utils.py
-├── tests
-│   ├── __init__.py
-│   ├── test_main.py
-├── .gitignore
-├── .pre-commit-config.yaml
-
-```
 
 ## How to Run
 ```
