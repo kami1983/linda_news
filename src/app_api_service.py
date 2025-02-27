@@ -14,7 +14,7 @@ from libs.csv_manager import getCsvFilePath, getCsvValueByColname, makeCsvLableP
 from libs.auth import generate_token, decode_token, login_required
 from dotenv import load_dotenv
 
-from libs.db_conn import addCsvRecord, getScvLabel, updatePublicLabel
+from libs.db_conn import addCsvRecord, getScvLabel, readCsvRecordData, updatePublicLabel
 
 # 加载环境变量
 load_dotenv()
@@ -378,7 +378,21 @@ async def what_concepts():
                     'code': 200,
                     'message': []
                 }), 200
-            
+
+@app.route('/api/get_csv_record_data', methods=['GET'])
+async def get_csv_record_data():
+    '''
+    This API is used to get the CSV record data.
+    '''
+    start = request.args.get('start', 0, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    # 读取csv record 记录 
+    csv_record_data = readCsvRecordData(start, limit)
+    return jsonify({
+        'code': 200,
+        'message': csv_record_data
+    }), 200
+
 @app.route('/api/get_csv_label', methods=['GET'])
 async def get_csv_label():  
     '''
@@ -452,11 +466,13 @@ async def read_csv_data():
     '''
     columns = request.args.get('list', '行业').split(',')
     type = request.args.get('type', 1, type=int)
+    label = request.args.get('label', 0, type=int)
+
     if type not in [1, 2]:
         return jsonify({'code': 400, 'message': 'Invalid type parameter'}), 400
 
     try:
-        data = readCsvData(columns, type)
+        data = readCsvData(columns, type, label)
         return jsonify({'code': 200, 'data': data})
     except Exception as e:
         return jsonify({'code': 500, 'message': str(e)}), 500

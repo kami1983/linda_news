@@ -67,3 +67,21 @@ def addCsvRecord(csv_label, update_date):
         print(f"Error adding CSV record: {e}")
     finally:
         cursor.close()
+
+def readCsvRecordData(start=0, limit=10):
+    conn = getDbConn()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT csv_label, UNIX_TIMESTAMP(update_date) FROM linda_csv_record ORDER BY csv_label DESC LIMIT %s,%s", (start, limit))
+        result = cursor.fetchall()
+        result_list = []
+        for row in result:
+            result_list.append({
+                'csv_label': row[0],
+                'update_date': row[1]
+            })
+        return result_list
+    except Exception as e:
+        print(f"Error reading CSV record data: {e}")
+    finally:
+        cursor.close()

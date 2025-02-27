@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Typography, Button, Select, MenuItem, FormControl, InputLabel, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const UploadCsv = () => {
@@ -57,15 +58,14 @@ const UploadCsv = () => {
 
   const handleRebuildCsvHeads = async () => {
     try {
+      
       // Fetch the current label
       const labelResponse = await axios.get('/api/get_csv_label');
       const currentLabel = parseInt(labelResponse.data.message);
-
       // Increment the label
       const newLabel = currentLabel + 1;
-
       // Call the rebuild endpoint with the new label
-      const response = await axios.get(`/api/rebuild_csv_heads?label=${newLabel}`);
+      await axios.get(`/api/rebuild_csv_heads?label=${newLabel}`);
 
       alert(`文件版本更新成功: ${newLabel}`);
     } catch (error) {
@@ -115,8 +115,11 @@ const UploadCsv = () => {
       <Button variant="contained" color="primary" onClick={handleClickOpen} fullWidth sx={{ mb: 2 }}>
         上传
       </Button>
-      <Button variant="outlined" color="secondary" onClick={handleRebuildCsvHeads} fullWidth>
+      <Button variant="outlined" color="secondary" onClick={handleRebuildCsvHeads} fullWidth sx={{ mb: 2 }}>
         更新文件版本
+      </Button>
+      <Button variant="text" component={Link} to="/knowledgebase" fullWidth>
+        返回知识库
       </Button>
 
       <Dialog open={open} onClose={handleClose}>
